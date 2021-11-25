@@ -1,4 +1,5 @@
 import ballerina/io;
+import ballerina/tcp;
 import json_rpc.server;
 
 type Nip record {|
@@ -19,11 +20,15 @@ string str5 = "{\"jsonrpc\":\"2.0\",\"method\":\"mult\",\"params\":550,\"id\":10
 public function main() {
 
     io:println("hello");
-    server:serverFunction("add", addFunction);
-    server:serverFunction("sub", subFunction);
+    server:Server madusanka = new();
+    server:Server nadeeshan = new();
+    madusanka.serverFunction("add", addFunction);
+    madusanka.serverFunction("sub", subFunction);
+    nadeeshan.serverFunction("sub", subFunction);
 
-    //validator:Error|validator:Response|runner:BatchResponse|error? messageCatcher = server:messageCatcher(str3);
-    io:println(server:messageCatcher(str3));
+    io:println(madusanka.messageCatcher(str));
+    io:println(nadeeshan.messageCatcher(str));
+    
 }
 
 
@@ -38,3 +43,16 @@ public function subFunction(server:InputFunc ifs) returns int|error{
   Nip nip = check nips.cloneWithType();
   return nip.x - nip.y;
 }
+
+
+service on new tcp:Listener(3000){
+    remote function onConnect(tcp:Caller caller){
+        io:println("Client connected to echo server: ", caller.remotePort);
+    }
+} 
+
+service on new tcp:Listener(4000) {
+    remote function onConnect(tcp:Caller caller){
+        io:println("Client connected to echo server: ", caller.remotePort);
+    }
+} 

@@ -22,7 +22,6 @@ modules = [
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.caller"},
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.client"},
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.filter"},
-	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.method_handler"},
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.runner"},
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.server"},
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.services"},

@@ -10,11 +10,9 @@ public isolated  function defService() returns tcp:ConnectionService | tcp:Error
     return csv;
 }
 
-
 service class Service {
     *tcp:ConnectionService;
     remote function onBytes(tcp:Caller caller, readonly & byte[] data) returns tcp:Error? {
-        
         io:println("Echo: ", string:fromBytes(data));
         return caller->writeBytes(data);
     }

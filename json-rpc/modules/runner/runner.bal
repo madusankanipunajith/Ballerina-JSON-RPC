@@ -1,15 +1,17 @@
 import ballerina/lang.value;
 import json_rpc.validator;
 import json_rpc.caller;
-import ballerina/io;
+import json_rpc.store;
+//import ballerina/io;
 
 public type BatchResponse validator:JsonRPCTypes[];
-BatchResponse batch_res_array = [];
 
-public function executor(string argument) returns validator:Error|validator:Response|BatchResponse|error?{
+
+public function executor(string argument, map<function (store:InputFunc func) returns any|error> serverMapper) returns validator:Error|validator:Response|BatchResponse|error?{
+    BatchResponse batch_res_array = [];    
     
     any|error z = trap value:fromJsonString(argument);
-    io:println(typeof z);
+    //io:println(typeof z);
 
     if z is any[]{
         //io:println("This is an array");
@@ -23,7 +25,7 @@ public function executor(string argument) returns validator:Error|validator:Resp
             return err;
         }else{
             foreach var item in z {
-                validator:JsonRPCTypes? response = check caller:caller(item.toString());
+                validator:JsonRPCTypes? response = check caller:caller(item.toString(), serverMapper);
 
                 if response is validator:Response || response is validator:Error{
                     batch_res_array.push(response);
@@ -46,7 +48,7 @@ public function executor(string argument) returns validator:Error|validator:Resp
     else if z is json{
         //io:println("This is a json string");
         // caller function return a panic error if and only if the error is only beign in the user define function
-        validator:JsonRPCTypes? response = check caller:caller(argument);
+        validator:JsonRPCTypes? response = check caller:caller(argument, serverMapper);
 
         if response is validator:Error || response is validator:Response{
             return response;
