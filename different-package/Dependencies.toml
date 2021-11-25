@@ -13,6 +13,7 @@ version = "0.1.0"
 dependencies = [
 	{org = "asus", name = "json_rpc"},
 	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "tcp"},
 	{org = "ballerinai", name = "observe"}
 ]
 modules = [
@@ -34,7 +35,6 @@ modules = [
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.caller"},
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.client"},
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.filter"},
-	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.method_handler"},
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.runner"},
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.server"},
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.services"},
@@ -102,6 +102,9 @@ version = "1.0.1"
 dependencies = [
 	{org = "ballerina", name = "crypto"},
 	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "tcp", moduleName = "tcp"}
 ]
 
 [[package]]
