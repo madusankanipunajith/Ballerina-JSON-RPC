@@ -1,5 +1,40 @@
 // import ballerina/test;
 // import json_rpc.validator;
+// import json_rpc.server;
+
+// type Nip record {|
+//     int x;
+//     int y;
+// |};
+
+// public function addFunction(server:InputFunc ifs) returns int|error{
+//     json nips = <json> ifs;
+//     Nip nip = check nips.cloneWithType();
+//     return nip.x + nip.y;
+// }
+
+// public function subFunction(server:InputFunc ifs) returns int|error{
+//     json nips = <json> ifs;
+//     Nip nip = check nips.cloneWithType();
+//     return nip.x - nip.y;
+// }
+
+// // json rpc messages come from client
+// string str = "{\"jsonrpc\":\"2.0\",\"method\":\"add\",\"params\":{\"x\":89, \"y\":100},\"id\":10}";
+// string str2 = "{\"foo\": \"boo\"}";
+// string str3 = "[{\"jsonrpc\":\"2.0\",\"method\":\"add\",\"params\":{\"x\":89, \"y\":100},\"id\":10}, {\"jsonrpc\":\"2.0\",\"method\":\"sub\",\"params\":{\"x\":89, \"y\":100},\"id\":10}]";
+// string str4 = "{\"jsonrpc\":\"2.0\",\"method\":\"mult\",\"params\":[10,20,30],\"id\":10}";
+// string str5 = "{\"jsonrpc\":\"2.0\",\"method\":\"mult\",\"params\":550,\"id\":10}";
+
+// validator:Error|validator:Response|BatchResponse|error? executorResult = null;
+
+// @test:BeforeSuite
+// function beforeFunc() {    
+//     server:Server madusanka = new();
+//     madusanka.serverFunction("add", addFunction);
+//     madusanka.serverFunction("sub", subFunction);
+//     executorResult = madusanka.messageCatcher(str2);
+// }
 
 // validator:Error res1 ={
 //     id: null,
@@ -27,11 +62,9 @@
 
 // @test:Config{}
 // function testParseError() returns error? {
-//     string str2 = "{\"id\":10,\"result\":\"this is the result came from server\",\"jsonrpc\":\"2.0\"";
-//     validator:Error|validator:Response|BatchResponse|error? executorResult = executor(str2);
-
-//     if executorResult is validator:Error{
-//         test:assertEquals(executorResult, res1, msg = "Testing has been failed");
+//    validator:Error|validator:Response|BatchResponse|error? result = executorResult;
+//     if result is validator:Error{
+//         test:assertEquals(result, res1, msg = "Testing has been failed");
 //     }else{
 //         test:assertFalse(true, msg = "AssertFalse failed");
 //     }
@@ -74,4 +107,3 @@
 //         test:assertFalse(true, msg = "AssertFalse failed");
 //     }
 // }
-

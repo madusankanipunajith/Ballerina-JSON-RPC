@@ -29,8 +29,8 @@ function testJsonResponse() {
 
 @test:Config{}
 function testJsonNotification() {
-    string str4 = "{\"jsonrpc\":\"2.0\",\"method\":\"display\",\"params\":{\"number\":89, \"street\":\"main street\", \"town\":\"Colombo\"}}";
-    JsonRPCTypes|error messageValidatorResult = messageValidator(str4);
+    string str9 = "{\"jsonrpc\":\"2.0\",\"method\":\"display\",\"params\":{\"number\":89, \"street\":\"main street\", \"town\":\"Colombo\"}}";
+    JsonRPCTypes|error messageValidatorResult = messageValidator(str9);
 
     boolean result = false;
     if messageValidatorResult is Notification{
