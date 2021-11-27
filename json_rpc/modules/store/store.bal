@@ -1,11 +1,13 @@
 import json_rpc.validator;
 
 # User Input parameters  
-public type InputFunc record {|
+type InputFunc record {|
     
     anydata...;
 
 |};
+
+public type Input InputFunc|anydata[];
 
 public isolated function responseObject(int requestId, any answer) returns validator:Response{
     validator:Response res={
@@ -35,7 +37,7 @@ public isolated function parseError() returns validator:Error{
 #
 # + requestId - Parameter Description
 # + return - Return Value Description  
-public function methodNotFoundError(int requestId) returns validator:Error{
+public isolated function methodNotFoundError(int requestId) returns validator:Error{
     validator:Error err ={
         id: requestId,
         err: {code: "-32601", message: "method is not found"},

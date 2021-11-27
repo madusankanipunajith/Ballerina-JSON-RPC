@@ -3,20 +3,22 @@ import json_rpc.validator;
 import json_rpc.store;
 import ballerina/lang.value;
 
-type MapFunctionType function (store:InputFunc) returns any|error;
+type MapFunctionType function (store:Input) returns any|error;
 type BatchResponse validator:JsonRPCTypes?[]; BatchResponse batch_res_array = [];
 
 # User Input parameters  
-public type InputFunc record {|
+type InputFunc record {|
     
     anydata...;
 
 |};
 
-public class Server {
-    private map<function (InputFunc func) returns any|error> methodMapper = {};
+public type Input InputFunc|anydata[];
 
-    private function addFunction(string method, function (InputFunc) returns any|error servFunc) returns error?{
+public class Server {
+    private map<function (store:Input func) returns any|error> methodMapper = {};
+
+    private function addFunction(string method, function (store:Input) returns any|error servFunc) returns error?{
                   
             if (self.methodMapper[method] is null) {
                 
@@ -103,7 +105,7 @@ public class Server {
  
     }
 
-    public function serverFunction(string method, function (InputFunc) returns any|error servFunc){
+    public function serverFunction(string method, function (store:Input) returns any|error servFunc){
         
         checkpanic self.addFunction(method,servFunc);
     }

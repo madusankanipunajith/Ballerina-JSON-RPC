@@ -1,7 +1,6 @@
 import json_rpc.validator;
-import ballerina/lang.value;
 import json_rpc.store;
-
+import ballerina/io;
 
 
 # Description
@@ -9,11 +8,11 @@ import json_rpc.store;
 # + request - Parameter Description  
 # + func - Parameter Description
 # + return - Return Value Description  
-public function executor(validator:Request request, function (store:InputFunc func) returns any|error func) returns validator:Response|error|null{
+public function executor(validator:Request request, function (store:Input func) returns any|error func) returns validator:Response|error|null{
 
-    function (store:InputFunc) returns any|error abstractFunction = func.clone();
+    function (store:Input) returns any|error abstractFunction = func.clone();
     anydata parameters = request.params;
-    store:InputFunc fetchedParameters;
+    store:Input fetchedParameters;
 
     if parameters === () {
 
@@ -29,15 +28,12 @@ public function executor(validator:Request request, function (store:InputFunc fu
 
     if parameters is anydata[]{
 
-        json convertToJson = check value:fromJsonString(parameters.toString());
-                    
-        json M ={ arr: convertToJson};
-
-        fetchedParameters = check M.cloneWithType();
+        fetchedParameters = parameters;
                    
     }else{
                     
-        fetchedParameters = check parameters.cloneWithType();     
+        fetchedParameters = check parameters.cloneWithType(); 
+        io:println(typeof fetchedParameters);
             
     }
 

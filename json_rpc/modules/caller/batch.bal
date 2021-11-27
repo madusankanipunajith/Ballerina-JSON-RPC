@@ -3,7 +3,7 @@ import ballerina/lang.value;
 # Description
 #
 # + requestMessage - Parameter Description
-# + return - Return Value Description  
+# + return - 0(Invalid Request) 1(batch) 2(parse error) 3(json) 
 public isolated function batchChecker(string requestMessage) returns int{
     any|error z = trap value:fromJsonString(requestMessage);
 
