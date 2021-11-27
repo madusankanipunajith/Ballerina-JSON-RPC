@@ -38,12 +38,7 @@ public type Notification record {
 public type JsonRPCTypes Request|Response|Error|Notification;
 
 
-// 0 -> notification
-// 1 -> request message
-// 2 -> response message
-// 3 -> invalid message
-
-public function messageValidator(string jsonString) returns JsonRPCTypes|error{
+public isolated function messageValidator(string jsonString) returns JsonRPCTypes|error{
     
     json message = check value:fromJsonString(jsonString);
     
@@ -74,6 +69,7 @@ public function messageValidator(string jsonString) returns JsonRPCTypes|error{
         return err;
     }
     else{
+
         if jmessage?.id === () && !(jmessage?.method is null) && !(jmessage?.params is null){
             
             Notification r = {
@@ -127,3 +123,7 @@ public function messageValidator(string jsonString) returns JsonRPCTypes|error{
         return err;
     }
 }
+
+
+
+
