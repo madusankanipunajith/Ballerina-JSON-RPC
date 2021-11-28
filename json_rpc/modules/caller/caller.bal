@@ -1,6 +1,5 @@
 import json_rpc.validator;
 import json_rpc.store;
-import ballerina/io;
 
 
 # Description
@@ -33,7 +32,7 @@ public function executor(validator:Request request, function (store:Input func) 
     }else{
                     
         fetchedParameters = check parameters.cloneWithType(); 
-        io:println(typeof fetchedParameters);
+
             
     }
 
