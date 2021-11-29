@@ -5,8 +5,7 @@ distribution = "slbeta4"
 observabilityIncluded = true
 
 [[dependency]]
-org= "asus"
-name= "json_rpc"
-version= "0.1.0"
+org="asus"
+name="json_rpc"
 repository="local"
-
+version="0.1.0"

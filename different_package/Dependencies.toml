@@ -13,7 +13,6 @@ version = "0.1.0"
 dependencies = [
 	{org = "asus", name = "json_rpc"},
 	{org = "ballerina", name = "io"},
-	{org = "ballerina", name = "tcp"},
 	{org = "ballerinai", name = "observe"}
 ]
 modules = [
@@ -26,29 +25,14 @@ name = "json_rpc"
 version = "0.1.0"
 dependencies = [
 	{org = "ballerina", name = "io"},
-	{org = "ballerina", name = "lang.value"},
-	{org = "ballerina", name = "log"},
-	{org = "ballerina", name = "tcp"}
+	{org = "ballerina", name = "lang.value"}
 ]
 modules = [
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc"},
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.caller"},
-	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.client"},
-	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.filter"},
-	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.runner"},
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.server"},
-	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.services"},
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.store"},
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.validator"}
-]
-
-[[package]]
-org = "ballerina"
-name = "crypto"
-version = "2.0.1"
-dependencies = [
-	{org = "ballerina", name = "jballerina.java"},
-	{org = "ballerina", name = "time"}
 ]
 
 [[package]]
@@ -78,39 +62,8 @@ dependencies = [
 
 [[package]]
 org = "ballerina"
-name = "log"
-version = "2.0.1"
-dependencies = [
-	{org = "ballerina", name = "io"},
-	{org = "ballerina", name = "jballerina.java"},
-	{org = "ballerina", name = "lang.value"},
-	{org = "ballerina", name = "observe"}
-]
-
-[[package]]
-org = "ballerina"
 name = "observe"
 version = "1.0.0"
-dependencies = [
-	{org = "ballerina", name = "jballerina.java"}
-]
-
-[[package]]
-org = "ballerina"
-name = "tcp"
-version = "1.0.1"
-dependencies = [
-	{org = "ballerina", name = "crypto"},
-	{org = "ballerina", name = "jballerina.java"}
-]
-modules = [
-	{org = "ballerina", packageName = "tcp", moduleName = "tcp"}
-]
-
-[[package]]
-org = "ballerina"
-name = "time"
-version = "2.0.1"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
