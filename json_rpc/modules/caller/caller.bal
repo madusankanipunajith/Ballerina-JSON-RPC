@@ -7,9 +7,9 @@ import json_rpc.store;
 # + request - Parameter Description  
 # + func - Parameter Description
 # + return - Return Value Description  
-public function executor(validator:Request request, function (store:Input func) returns any|error func) returns validator:Response|error|null{
+public isolated function executor(validator:Request request, isolated function (store:Input func) returns any|error func) returns validator:Response|error|null{
 
-    function (store:Input) returns any|error abstractFunction = func.clone();
+    isolated function (store:Input) returns any|error abstractFunction = func.clone();
     anydata parameters = request.params;
     store:Input fetchedParameters;
 

@@ -1,29 +1,31 @@
 import ballerina/lang.value;
+import json_rpc.store;
 
 # Description
 #
 # + requestMessage - Parameter Description
-# + return - 0(Invalid Request) 1(batch) 2(parse error) 3(json) 
-public isolated function batchChecker(string requestMessage) returns int{
-    any|error z = trap value:fromJsonString(requestMessage);
+# + return - Return Value Description  
+public isolated function requestIdentifier(string requestMessage) returns store:Identy{
 
-    if z is any[]{
+    any|error fetchMessage = trap value:fromJsonString(requestMessage);
 
-        if z.length() === 0{
-            return 0;
+    if fetchMessage is any[]{
+
+        if fetchMessage.length() === 0{
+            return store:invalidRequestError();
         }else{
-            return 1;
+            return fetchMessage;
         }
        
     }
 
-    if z is error{
-        return 2;
+    if fetchMessage is error{
+        return store:parseError();
     }
 
-    if z is json{
-        return 3;
+    if fetchMessage is json{
+        return fetchMessage;
     }
 
-    return 0;
+    return store:invalidRequestError();
 }

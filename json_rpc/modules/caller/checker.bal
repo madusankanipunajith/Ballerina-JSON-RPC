@@ -5,12 +5,8 @@ import json_rpc.store;
 #
 # + message - Parameter Description
 # + return - Return Value Description  
-public isolated function checker(string message) returns validator:Error|validator:Request|null{
-    validator:JsonRPCTypes|error result = trap validator:messageValidator(message);
-
-    if result is error{
-        return store:parseError();
-    }
+public isolated function checker(json message) returns validator:Error|validator:Request|null{
+    validator:JsonRPCTypes result = validator:messageValidator(message);
 
     if result is validator:Error{
         return result;

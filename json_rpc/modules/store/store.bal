@@ -9,6 +9,8 @@ type InputFunc record {|
 
 public type Input InputFunc|anydata[];
 
+public type Identy json|any[]|validator:Error;
+
 public isolated function responseObject(int requestId, any answer) returns validator:Response{
     validator:Response res={
         id: requestId,
