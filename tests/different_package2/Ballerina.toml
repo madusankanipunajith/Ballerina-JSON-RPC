@@ -1,0 +1,11 @@
+[package]
+distribution = "slbeta4"
+
+[build-options]
+observabilityIncluded = true
+
+[[dependency]]
+org="asus"
+name="json_rpc"
+repository="local"
+version="0.1.0"
