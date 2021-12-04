@@ -1,5 +1,4 @@
 import json_rpc.caller;
-import json_rpc.validator;
 import json_rpc.'type;
 import json_rpc.util;
 
@@ -35,10 +34,8 @@ public isolated class Server {
         
     }
 
-    private isolated function methodFilter(json message) returns MapFunctionType?{
-        'type:JsonRPCTypes result = validator:messageValidator(message);
+    private isolated function methodFilter('type:Request result) returns MapFunctionType?{
 
-        if result is 'type:Request{
             string method = result.method;
 
             lock {
@@ -46,31 +43,20 @@ public isolated class Server {
                     return self.methodMapper[method];
                 }
             }
-        }
+        
 
         return null; 
     }
 
-    private isolated function executeSingleJson(json message) returns 'type:Error|'type:Response?{
-        'type:Request|'type:Error|null output = caller:checker(message);
+    private isolated function executeSingleJson('type:Request message) returns 'type:Error|'type:Response?{
 
-        if output is 'type:Request{
             MapFunctionType? mf = self.methodFilter(message);
 
             if mf is null{
-                return util:methodNotFoundError(output.id);
+                return util:methodNotFoundError(message.id);
             }
 
-            return checkpanic caller:executor(output, mf);
-        }
-
-        else if output is 'type:Error {
-            return output;
-        }
-
-        else {
-            return null; 
-        }
+            return checkpanic caller:executor(message, mf);
 
     }
 
@@ -78,9 +64,15 @@ public isolated class Server {
         BatchResponse batch_res_array = [];
 
             foreach var item in message {
-               
-                batch_res_array.push(self.executeSingleJson(item));
-               
+                
+                if caller:checker(item) is 'type:Request{
+                    batch_res_array.push(self.executeSingleJson(<'type:Request> caller:checker(item)));
+                }
+
+                if caller:checker(item) is 'type:Error{
+                    batch_res_array.push(caller:checker(item));
+                }
+                              
             }
 
             return batch_res_array;
@@ -97,7 +89,15 @@ public isolated class Server {
         }
 
         if identity is map<json>{
-            return self.executeSingleJson(identity);
+           
+            if caller:checker(identity) is 'type:Request {
+                return self.executeSingleJson(<'type:Request> caller:checker(identity));     
+            }
+
+            if caller:checker(identity) is 'type:Error{
+                return caller:checker(identity);
+            }
+           
         }   
 
         if identity is json[]{
