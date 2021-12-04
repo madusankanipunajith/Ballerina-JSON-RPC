@@ -15,7 +15,7 @@ string str60 = "{\"jsonrpc\":\"2.0\",\"method\":\"add\",\"params\":100,\"id\":10
 string str6 = "[]";
 public function main() {
     server:Server s1 = new();
-    s1.serverFunction("add", addFunction);
+    s1.register("add", addFunction);
     io:println(s1.runner(str60));
 }
 

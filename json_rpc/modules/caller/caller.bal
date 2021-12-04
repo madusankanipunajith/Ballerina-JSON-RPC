@@ -1,17 +1,16 @@
-import json_rpc.validator;
-import json_rpc.store;
-
+import json_rpc.'type;
+import json_rpc.util;
 
 # Description
 #
 # + request - Parameter Description  
 # + func - Parameter Description
 # + return - Return Value Description  
-public isolated function executor(validator:Request request, isolated function (store:Input func) returns any|error func) returns validator:Response|error|null{
+public isolated function executor('type:Request request, isolated function ('type:Input func) returns any|error func) returns 'type:Response|error|null{
 
-    isolated function (store:Input) returns any|error abstractFunction = func.clone();
+    isolated function ('type:Input) returns any|error abstractFunction = func.clone();
     anydata parameters = request.params;
-    store:Input fetchedParameters;
+    'type:Input fetchedParameters;
 
     if parameters === () {
 
@@ -38,7 +37,7 @@ public isolated function executor(validator:Request request, isolated function (
 
         any res = check abstractFunction(fetchedParameters);
 
-        return store:responseObject(request.id, res);
+        return util:responseObject(request.id, res);
 
 }
 

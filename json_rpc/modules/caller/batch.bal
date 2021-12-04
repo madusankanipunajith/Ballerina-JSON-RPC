@@ -1,18 +1,19 @@
 import ballerina/lang.value;
-import json_rpc.store;
+import json_rpc.'type;
+import json_rpc.util;
 
 # Description
 #
 # + requestMessage - Parameter Description
 # + return - Return Value Description  
-public isolated function requestIdentifier(string requestMessage) returns store:Identy{
+public isolated function requestIdentifier(string requestMessage) returns 'type:Identy{
 
     any|error fetchMessage = trap value:fromJsonString(requestMessage);
 
     if fetchMessage is any[]{
 
         if fetchMessage.length() === 0{
-            return store:invalidRequestError();
+            return util:invalidRequestError();
         }else{
             return fetchMessage;
         }
@@ -20,12 +21,12 @@ public isolated function requestIdentifier(string requestMessage) returns store:
     }
 
     if fetchMessage is error{
-        return store:parseError();
+        return util:parseError();
     }
 
     if fetchMessage is json{
         return fetchMessage;
     }
 
-    return store:invalidRequestError();
+    return util:invalidRequestError();
 }
