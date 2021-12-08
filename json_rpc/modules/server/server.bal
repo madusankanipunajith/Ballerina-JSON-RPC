@@ -2,57 +2,89 @@ import json_rpc.caller;
 import json_rpc.'type;
 import json_rpc.util;
 
-type MapFunctionType isolated function ('type:Input) returns any|error;
 type BatchResponse 'type:JsonRPCTypes?[]; 
 
 # User Input parameters  
-type InputFunc record {|
-    
-    anydata...;
+public type Input 'type:InputFunc|anydata[];
 
-|};
+public class JRPCService {
+    public 'type:Methods methods;
 
-public type Input InputFunc|anydata[];
-
-public isolated class Server {
-    private map<isolated function ('type:Input func) returns any|error> methodMapper = {};
-
-    private isolated function addFunction(string method,isolated function ('type:Input) returns any|error servFunc) returns error?{
-                  
-            lock {
-                
-                if (self.methodMapper[method] is null) {
-                
-                    self.methodMapper[method] =  servFunc.clone();     
-    
-                }else{
-
-                    return error("same request method name cannot be applied...");
-                }
-
-            }
-        
+    public isolated function init('type:Methods methods) {
+        self.methods = methods;
     }
 
-    private isolated function methodFilter('type:Request result) returns MapFunctionType?{
+    public isolated function name() returns string|error{
+        return "";
+    }
+}
+
+// public class JSONServiceRunner {
+//     private JRPCService srv;
+
+//     public isolated function init(JRPCService srv) {
+//         self.srv= srv;
+//     }
+
+//     public isolated function route(string meth) returns 'type:Method|error{
+//         'type:Method|error method = trap self.srv.methods.get(meth);
+        
+//         if method is error{
+
+//             return error("method is not found...");
+        
+//         }else{
+        
+//             return method;
+//         }
+    
+//     }
+// }
+
+public class Server {
+    //private JSONServiceRunner jsr;
+    private JRPCService jservice;
+
+    public isolated function init(JRPCService srv) {
+        self.jservice = srv;
+    }
+
+    // private isolated function route(string meth) returns 'type:Method|error{
+    //     'type:Method|error method = trap self.jservice.methods.get(meth);
+        
+    //     if method is error{
+
+    //         return error("method is not found...");
+        
+    //     }else{
+        
+    //         return method;
+    //     }
+    
+    // }
+
+    private isolated function methodFilter('type:Request result) returns 'type:Method|error{
 
             string method = result.method;
 
-            lock {
-                if !(self.methodMapper[method] is null){
-                    return self.methodMapper[method];
-                }
+            'type:Method|error selectedMethod = trap self.jservice.methods.get(method);
+
+            if selectedMethod is error {
+
+                return error("method is not found...");
+
+            }else{
+
+                return selectedMethod;
             }
         
-
-        return null; 
     }
 
     private isolated function executeSingleJson('type:Request message) returns 'type:Error|'type:Response?{
 
-            MapFunctionType? mf = self.methodFilter(message);
+            'type:Method|error mf = self.methodFilter(message);
 
-            if mf is null{
+            if mf is error{
                 return util:methodNotFoundError(message.id);
             }
 
@@ -107,8 +139,4 @@ public isolated class Server {
         return util:serverError();
     }
 
-    public isolated function register(string method, isolated function ('type:Input) returns any|error servFunc){
-        
-        checkpanic self.addFunction(method,servFunc);
-    }
 }
