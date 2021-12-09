@@ -36,7 +36,7 @@ public type Notification record {
 public type JsonRPCTypes Request|Response|Error|Notification;
 
 
-type InputFunc record {|
+public type InputFunc record {|
     
     anydata...;
 
@@ -45,3 +45,9 @@ type InputFunc record {|
 public type Input InputFunc|anydata[];
 
 public type Identy json|any[]|Error;
+
+public type Method isolated function (Input) returns any|error;
+
+public type Methods record {|
+    Method...;
+|};
