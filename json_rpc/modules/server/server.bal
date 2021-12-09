@@ -8,66 +8,35 @@ type BatchResponse 'type:JsonRPCTypes?[];
 public type Input 'type:InputFunc|anydata[];
 
 public class JRPCService {
-    public 'type:Methods methods;
 
-    public isolated function init('type:Methods methods) {
-        self.methods = methods;
+    public 'type:JRPCMethods methods;
+
+    public isolated function init() {
+        self.methods = new();
     }
 
     public isolated function name() returns string|error{
         return "";
     }
+
 }
 
-// public class JSONServiceRunner {
-//     private JRPCService srv;
-
-//     public isolated function init(JRPCService srv) {
-//         self.srv= srv;
-//     }
-
-//     public isolated function route(string meth) returns 'type:Method|error{
-//         'type:Method|error method = trap self.srv.methods.get(meth);
-        
-//         if method is error{
-
-//             return error("method is not found...");
-        
-//         }else{
-        
-//             return method;
-//         }
-    
-//     }
-// }
 
 public class Server {
-    //private JSONServiceRunner jsr;
+
     private JRPCService jservice;
 
     public isolated function init(JRPCService srv) {
         self.jservice = srv;
     }
 
-    // private isolated function route(string meth) returns 'type:Method|error{
-    //     'type:Method|error method = trap self.jservice.methods.get(meth);
-        
-    //     if method is error{
-
-    //         return error("method is not found...");
-        
-    //     }else{
-        
-    //         return method;
-    //     }
-    
-    // }
-
     private isolated function methodFilter('type:Request result) returns 'type:Method|error{
 
-            string method = result.method;
+            string method = result.method;            
 
-            'type:Method|error selectedMethod = trap self.jservice.methods.get(method);
+            'type:Methods allMethods = self.jservice.methods.getMethods();
+
+            'type:Method|error selectedMethod = trap allMethods.get(method);
 
             if selectedMethod is error {
 
