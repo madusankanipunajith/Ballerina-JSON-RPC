@@ -1,19 +1,19 @@
 import json_rpc.validator;
 import json_rpc.util;
-import json_rpc.'type;
+import json_rpc.'types;
 
 # Description
 #
 # + message - Parameter Description
 # + return - Return Value Description  
-public isolated function checker(json message) returns 'type:Error|'type:Request|null{
-    'type:JsonRPCTypes result = validator:messageValidator(message);
+public isolated function checker(json message) returns 'types:Error|'types:Request|null{
+    'types:JsonRPCTypes result = validator:messageValidator(message);
 
-    if result is 'type:Error{
+    if result is 'types:Error{
         return result;
     }
 
-    if result is 'type:Request{
+    if result is 'types:Request{
         anydata reqestParams = result.params;
 
         if( !(reqestParams is anydata[]) && !(reqestParams is map<anydata>) && !(reqestParams === ())){

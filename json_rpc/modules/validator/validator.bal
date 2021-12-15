@@ -1,13 +1,13 @@
-import json_rpc.'type;
+import json_rpc.'types;
 import json_rpc.util;
 
 # Description
 #
 # + message - Parameter Description
 # + return - Return Value Description  
-public isolated function messageValidator(json message) returns 'type:JsonRPCTypes{
+public isolated function messageValidator(json message) returns 'types:JsonRPCTypes{
     
-    'type:JsonRecord|error jmessage = message.cloneWithType();
+    'types:JsonRecord|error jmessage = message.cloneWithType();
 
     if jmessage is error{
         //return error("something went wrong in message conversion");

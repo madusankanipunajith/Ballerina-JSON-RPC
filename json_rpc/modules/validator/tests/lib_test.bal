@@ -1,14 +1,14 @@
 import ballerina/test;
 import ballerina/lang.value;
-import json_rpc.'type;
+import json_rpc.'types;
 @test:Config{}
 function testJsonRequest() {
     string str = "{\"jsonrpc\":\"2.0\",\"method\":\"display\",\"params\":{\"number\":89, \"street\":\"main street\", \"town\":\"Colombo\"},\"id\":10}";
     json jsn = checkpanic value:fromJsonString(str);
-    'type:JsonRPCTypes|error messageValidatorResult = messageValidator(jsn);
+    'types:JsonRPCTypes|error messageValidatorResult = messageValidator(jsn);
     
     boolean result = false;
-    if messageValidatorResult is 'type:Request{
+    if messageValidatorResult is 'types:Request{
         result = true;
     }
 
@@ -20,10 +20,10 @@ function testJsonRequest() {
 function testJsonResponse() {
     string str2 = "{\"id\":10,\"result\":\"this is the result came from server\",\"jsonrpc\":\"2.0\"}";
     json jsn = checkpanic value:fromJsonString(str2);
-    'type:JsonRPCTypes|error messageValidatorResult = messageValidator(jsn);
+    'types:JsonRPCTypes|error messageValidatorResult = messageValidator(jsn);
 
     boolean result = false;
-    if messageValidatorResult is 'type:Response{
+    if messageValidatorResult is 'types:Response{
         result = true;
     }
 
@@ -34,10 +34,10 @@ function testJsonResponse() {
 function testJsonNotification() {
     string str9 = "{\"jsonrpc\":\"2.0\",\"method\":\"display\",\"params\":{\"number\":89, \"street\":\"main street\", \"town\":\"Colombo\"}}";
     json jsn = checkpanic value:fromJsonString(str9);
-    'type:JsonRPCTypes|error messageValidatorResult = messageValidator(jsn);
+    'types:JsonRPCTypes|error messageValidatorResult = messageValidator(jsn);
 
     boolean result = false;
-    if messageValidatorResult is 'type:Notification{
+    if messageValidatorResult is 'types:Notification{
         result = true;
     }
 
@@ -50,16 +50,16 @@ function testJsonError() {
     string str5 = "{\"jsonrpc\": \"2.0\", \"error\": {\"code\": -32601, \"message\": \"Method not found\"}, \"id\":23}";
     json jsn = checkpanic value:fromJsonString(str3);
     json jsn2 = checkpanic value:fromJsonString(str5);
-    'type:JsonRPCTypes|error messageValidatorResult = messageValidator(jsn);
-    'type:JsonRPCTypes|error messageValidatorResult2 = messageValidator(jsn2);
+    'types:JsonRPCTypes|error messageValidatorResult = messageValidator(jsn);
+    'types:JsonRPCTypes|error messageValidatorResult2 = messageValidator(jsn2);
 
     boolean result = false;
     boolean result2 = false;
-    if messageValidatorResult is 'type:Error{
+    if messageValidatorResult is 'types:Error{
         result = true;
     }
 
-    if messageValidatorResult2 is 'type:Error{
+    if messageValidatorResult2 is 'types:Error{
         result2 = true;
     }
 
