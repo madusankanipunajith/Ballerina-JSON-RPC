@@ -1,5 +1,7 @@
 import json_rpc.types;
 
+
+// 1st method
 public class singleClientRPC {
 
     private boolean isRequest = false;
@@ -98,6 +100,7 @@ public class batchClientRPC {
 }
 
 
+// 2nd method
 public class ClientMethods {
 
     private types:Request request ={
