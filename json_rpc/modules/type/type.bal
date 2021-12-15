@@ -49,5 +49,13 @@ public type Identy json|any[]|Error;
 public type Method isolated function (Input) returns any|error;
 
 public type Methods record {|
-    Method...;
+    isolated function (Input) returns any|error...;
 |};
+
+public class JRPCMethods {
+
+    public isolated function getMethods() returns Methods{
+        return {};
+    }
+
+}
