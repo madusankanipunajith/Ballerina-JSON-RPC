@@ -13,13 +13,15 @@ version = "0.1.0"
 dependencies = [
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "lang.value"},
+	{org = "ballerina", name = "regex"},
 	{org = "ballerina", name = "test"}
 ]
 modules = [
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc"},
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.caller"},
+	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.client"},
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.server"},
-	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.type"},
+	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.types"},
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.util"},
 	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.validator"}
 ]
@@ -50,6 +52,17 @@ dependencies = [
 ]
 modules = [
 	{org = "ballerina", packageName = "lang.value", moduleName = "lang.value"}
+]
+
+[[package]]
+org = "ballerina"
+name = "regex"
+version = "1.0.1"
+dependencies = [
+	{org = "ballerina", name = "jballerina.java"}
+]
+modules = [
+	{org = "ballerina", packageName = "regex", moduleName = "regex"}
 ]
 
 [[package]]
