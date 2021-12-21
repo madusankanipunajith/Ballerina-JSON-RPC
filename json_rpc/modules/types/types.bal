@@ -23,14 +23,16 @@ public type Request record {
     int id;
     string method;
     anydata params;
-    string jsonrpc;
+    string jsonrpc = "2.0";
 };
 
 public type Notification record {
     string method;
     anydata params;
-    string jsonrpc;
+    string jsonrpc = "2.0";
 };
+
+public type Batch Request|Notification[];
 
 public type JsonRPCTypes Request|Response|Error|Notification;
 
@@ -59,10 +61,3 @@ public class JRPCMethods {
 
 }
 
-
-public type BatchJRPCInput Request|Notification?;
-public type ClientInput record {|
-    int? id = null;
-    string method;
-    anydata params;
-|}[];

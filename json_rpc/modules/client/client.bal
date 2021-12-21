@@ -1,178 +1,114 @@
 import json_rpc.types;
+import ballerina/tcp;
+import ballerina/udp;
+import ballerina/io;
+
+public enum Protocols {
+    TCP, UDP
+}
+type BatchJRPCInput types:Request|types:Notification?[];
+type SingleJRPCInput types:Request|types:Notification;
 
 
-// 1st method
-public class singleClientRPC {
-
-    private boolean isRequest = false;
-    private types:Request request ={
-        id: 0,
-        params: null,
-        method: "",
-        jsonrpc: "2.0"
-    };
-    private types:Notification notification ={
-        params: null,
-        method: "",
-        jsonrpc: "2.0"
-    };
-
-    public function init( string method, anydata params, int? id = null){
-        if id is null {
-
-            self.notification.method = method;
-            self.notification.params = params;
-
-        }else{
-
-            self.request.id = id;
-            self.request.params = params;
-            self.request.method = method;
-
-            self.isRequest = true;
-
-        }
+public class ClientServices {
+    public function sendMessage(SingleJRPCInput|BatchJRPCInput message) {
+        return;
     }
 
-    public isolated function getJRPCMessage() returns types:Request|types:Notification{
-        
-        if self.isRequest {
-            
-            return self.request;
-        
-        }else{
+    public function fetchMessage() returns types:Response|types:Error?{
+        return;
+    }
 
-            return self.notification;
-        }
-
+    public function closeClient() {
+        return;
     }
 }
 
+class TCPClient {
+    *ClientServices;
 
-public class batchClientRPC {
+    private tcp:Client tcpClient;
 
-    private types:BatchJRPCInput[] batch_array = [];
-
-    public function init(types:ClientInput? input){
-        
-        if input is null {
-            
-            self.batch_array = [];
-        
-        }else{
-            
-            foreach var item in input {
-               
-                if item.id is null{
-                    
-                    types:Notification notification ={
-                        params: null,
-                        method: "",
-                        jsonrpc: "2.0"
-                    };
-                    
-                    notification.method = item.method;
-                    notification.params = item.params;
-
-                    self.batch_array.push(notification);
-                    
-                } else {
-                    types:Request request ={
-                        id: 0,
-                        params: null,
-                        method: "",
-                        jsonrpc: "2.0"
-                    };
-                    request.id = <int> item.id;
-                    request.method = item.method;
-                    request.params = item.params;
-
-                    self.batch_array.push(request);
-                }
-            }
-        }
+    public function init(string host, int port) {
+        self.tcpClient = checkpanic new(host, port);
     }
 
-    public function getJRPCMessage() returns 'types:BatchJRPCInput[]{
-        
-        return self.batch_array;
+    public function closeClient() {
+        checkpanic self.tcpClient->close();
     }
-}
-
-
-// 2nd method
-public class ClientMethods {
-
-    private types:Request request ={
-        id: 0,
-        params: null,
-        method: "",
-        jsonrpc: "2.0"
-    };
-    private types:Notification notification ={
-        params: null,
-        method: "",
-        jsonrpc: "2.0"
-    };
-    private types:BatchJRPCInput[] batch_array = [];
 
     
-    public function createRequest(string method, anydata params,int id) returns types:Request{
-            
-        self.request.id = id;
-        self.request.params = params;
-        self.request.method = method;
 
-        return self.request;
+    public function sendMessage(SingleJRPCInput|BatchJRPCInput message) {
+        string jsonMessage = message.toJsonString(); 
+        byte[] msgByteArray = jsonMessage.toBytes();
+        checkpanic self.tcpClient->writeBytes(msgByteArray);
     }
 
-    public function createNotification(string method, anydata params) returns types:Notification{
-        
-        self.notification.method = method;
-        self.notification.params = params;
+    public function fetchMessage() returns types:Response|types:Error? {
+        readonly & byte[] receivedData = checkpanic self.tcpClient->readBytes();
+        io:println("Received: ", string:fromBytes(receivedData));
+        return; 
+    }
+}
 
-        return self.notification;
+class UDPClient {
+    *ClientServices;
+
+    private udp:Client udpClient;
+    private string udpHost;
+    private int udpPort;
+
+    public function init(string host, int port) {
+        self.udpPort = port;
+        self.udpHost = host;
+        self.udpClient = checkpanic new({localHost: host});
+    }
+    public function closeClient() {
+        checkpanic self.udpClient->close();
     }
 
-    public function createBatch(types:ClientInput? input) returns types:BatchJRPCInput[]{
-        
-        if input is null {
-            
-            self.batch_array = [];
-        
-        }else{
-            
-            foreach var item in input {
-               
-                if item.id is null{
-                    
-                    types:Notification notification ={
-                        params: null,
-                        method: "",
-                        jsonrpc: "2.0"
-                    };
-                    
-                    notification.method = item.method;
-                    notification.params = item.params;
+    public function fetchMessage() returns types:Response|types:Error? {
+        readonly & udp:Datagram result = checkpanic self.udpClient->receiveDatagram();
+        io:println("Received: ", string:fromBytes(result.data));    
+        return;
+    }
 
-                    self.batch_array.push(notification);
-                    
-                }else{
-                    types:Request request ={
-                        id: 0,
-                        params: null,
-                        method: "",
-                        jsonrpc: "2.0"
-                    };
-                    request.id = <int> item.id;
-                    request.method = item.method;
-                    request.params = item.params;
+    public function sendMessage(SingleJRPCInput|BatchJRPCInput message) {
 
-                    self.batch_array.push(request);
-                }
+        string jsonMessage = message.toJsonString();
+
+        udp:Datagram datagram = {
+            remoteHost: self.udpHost,
+            remotePort : self.udpPort,
+            data : jsonMessage.toBytes()
+        };
+
+        checkpanic self.udpClient->sendDatagram(datagram);
+
+    }
+}
+
+public class Client {
+
+    public function setConfig(string remoteHost, int remotePort, Protocols protocol) returns TCPClient|UDPClient|error {
+        
+        match protocol {
+            
+            "TCP" => {
+                TCPClient tcpClient = new(remoteHost, remotePort);
+                io:println("TCP");
+                return tcpClient;
             }
+
+            "UDP" =>{
+                UDPClient udpClient = new(remoteHost, remotePort);
+                io:println("UDP");
+                return udpClient;
+            }
+            
         }
-        
-        return self.batch_array;
+
+        return error("protocol is not initialized yet");
     }
 }

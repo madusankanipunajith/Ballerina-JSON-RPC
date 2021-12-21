@@ -18,6 +18,7 @@ public class JRPCService {
         self.methods = new();
     }
 
+    // return an error by default....
     public isolated function name() returns string|error{
         return "";
     }
@@ -50,7 +51,9 @@ public class Server {
                 methodName = method;
 
             }else if self.jrpcsa.length() > 1 {
-                
+                // serviceName/method
+                // serviceName/m1/abc
+                // regex
                 string[] splitMethod = regex:split(method,"/");
                 string serviceName = splitMethod[0];
 
