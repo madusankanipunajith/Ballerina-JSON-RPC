@@ -125,15 +125,15 @@ public function main() returns error? {
 
     types:Batch batch = [r,s];
 
-
-    tcpService.sendMessage(r, function (types:Response t) returns () {
-        io:println(t);
+    tcpService.sendMessage(r, function (types:Response|types:Error u) returns () {
+       io:println(u); 
     });
 
-    tcpService.sendMessage(batch, function (types:Response t) returns () {
-       io:println(t); 
+    tcpService.sendMessage(batch, function (types:Response|types:Error u) returns () {
+       io:println(u); 
     });
 
+    tcpService.closeClient();
 }
 
 

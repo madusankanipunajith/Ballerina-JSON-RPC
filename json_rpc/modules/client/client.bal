@@ -11,7 +11,7 @@ type SingleJRPCInput types:Request|types:Notification;
 
 
 public class ClientServices {
-    public function sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response response) callback) {
+    public function sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response|types:Error response) callback) {
         return;
     }
 
@@ -39,7 +39,7 @@ class TCPClient {
 
     
 
-    public function sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response response) callback) {
+    public function sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response|types:Error response) callback) {
         string jsonMessage = message.toJsonString(); 
         byte[] msgByteArray = jsonMessage.toBytes();
         checkpanic self.tcpClient->writeBytes(msgByteArray);
@@ -50,7 +50,7 @@ class TCPClient {
 
         if !(res is tcp:Error){
             string reply = checkpanic string:fromBytes(res);
-            types:Response response = <types:Response> reply.toJson();
+            types:Response|types:Error response = <types:Response|types:Error> reply.toJson();
             callback(response);
         }
     }
@@ -87,7 +87,7 @@ class UDPClient {
         return;
     }
 
-    public function sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response response) callback) {
+    public function sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response|types:Error response) callback) {
 
         string jsonMessage = message.toJsonString();
 
@@ -105,7 +105,7 @@ class UDPClient {
 
         if !(res is udp:Error){
             string reply = checkpanic string:fromBytes(res.data);
-            types:Response response = <types:Response> reply.toJson();
+            types:Response|types:Error response = <types:Response|types:Error> reply.toJson();
             callback(response);
         }
     }
