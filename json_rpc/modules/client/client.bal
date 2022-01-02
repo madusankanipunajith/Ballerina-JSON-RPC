@@ -11,7 +11,7 @@ type SingleJRPCInput types:Request|types:Notification;
 
 
 public class ClientServices {
-    public function sendMessage(SingleJRPCInput|BatchJRPCInput message) {
+    public function sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response response) callback) {
         return;
     }
 
@@ -39,12 +39,24 @@ class TCPClient {
 
     
 
-    public function sendMessage(SingleJRPCInput|BatchJRPCInput message) {
+    public function sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response response) callback) {
         string jsonMessage = message.toJsonString(); 
         byte[] msgByteArray = jsonMessage.toBytes();
         checkpanic self.tcpClient->writeBytes(msgByteArray);
+
+        // waiting for the reply
+        future<byte[] & readonly|tcp:Error> listResult = start self.tcpClient->readBytes();
+        byte[] & readonly|tcp:Error res = wait listResult; 
+
+        if !(res is tcp:Error){
+            string reply = checkpanic string:fromBytes(res);
+            types:Response response = <types:Response> reply.toJson();
+            callback(response);
+        }
     }
 
+
+    // not required
     public function fetchMessage() returns types:Response|types:Error? {
         readonly & byte[] receivedData = checkpanic self.tcpClient->readBytes();
         io:println("Received: ", string:fromBytes(receivedData));
@@ -68,13 +80,14 @@ class UDPClient {
         checkpanic self.udpClient->close();
     }
 
+    // not required
     public function fetchMessage() returns types:Response|types:Error? {
         readonly & udp:Datagram result = checkpanic self.udpClient->receiveDatagram();
         io:println("Received: ", string:fromBytes(result.data));    
         return;
     }
 
-    public function sendMessage(SingleJRPCInput|BatchJRPCInput message) {
+    public function sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response response) callback) {
 
         string jsonMessage = message.toJsonString();
 
@@ -86,6 +99,15 @@ class UDPClient {
 
         checkpanic self.udpClient->sendDatagram(datagram);
 
+        // waiting for the reply
+        future<udp:Datagram & readonly|udp:Error> listResult = start self.udpClient->receiveDatagram();
+        udp:Datagram & readonly|udp:Error res = wait listResult; 
+
+        if !(res is udp:Error){
+            string reply = checkpanic string:fromBytes(res.data);
+            types:Response response = <types:Response> reply.toJson();
+            callback(response);
+        }
     }
 }
 

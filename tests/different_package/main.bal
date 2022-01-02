@@ -106,6 +106,7 @@
 import ballerina/io;
 import ballerina/log;
 import ballerina/tcp;
+//import ballerina/lang.runtime;
 service on new tcp:Listener(9000) {
 
     remote function onConnect(tcp:Caller caller)
@@ -115,13 +116,32 @@ service on new tcp:Listener(9000) {
     }
 }
 
+
 service class EchoService {
     *tcp:ConnectionService;
+    
     remote function onBytes(tcp:Caller caller, readonly & byte[] data) 
         returns tcp:Error? {
         io:println("Echo: ", string:fromBytes(data));
 
-        return caller->writeBytes(data);
+        string value = checkpanic string:fromBytes(data);
+        string answer = value;
+
+        // if value is "Hi" {
+            
+        //     io:println("Hi was recieved by server");
+        //     runtime:sleep(6);
+        //     answer = "executed after 6 seconds";
+        
+        // }else{
+            
+        //     io:println("Bye was recieved by server");
+        //     runtime:sleep(2);
+        //     answer = "executed after 2 seconds";
+        
+        // }
+
+        return caller->writeBytes(answer.toBytes());
     }
 
     remote function onError(tcp:Error err) {

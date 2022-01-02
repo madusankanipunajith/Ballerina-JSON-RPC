@@ -103,8 +103,10 @@
 //     }
 // }
 
+
 import json_rpc.types;
 import json_rpc.'client;
+import ballerina/io;
 public function main() returns error? {
 
     'client:Client cl = new();
@@ -119,17 +121,88 @@ public function main() returns error? {
      types:Notification s ={
         params: 120,
         method: "add"
-    };
+    };  
 
     types:Batch batch = [r,s];
 
-    tcpService.sendMessage(r);
-    _ = tcpService.fetchMessage();
-    tcpService.sendMessage(batch);
-    _ = tcpService.fetchMessage();     
-    tcpService.closeClient();
+
+    tcpService.sendMessage(r, function (types:Response t) returns () {
+        io:println(t);
+    });
+
+    tcpService.sendMessage(batch, function (types:Response t) returns () {
+       io:println(t); 
+    });
 
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import ballerina/io;
+// import ballerina/tcp;
+// public function main() returns error? {
+//     tcp:Client socketClient = check new ("localhost", 9000); 
+
+//     // string msg = "Bye"; // 6 seconds
+//     // byte[] msgByteArray = msg.toBytes();
+//     // check socketClient->writeBytes(msgByteArray);
+
+//     // readonly & byte[] receivedData = check socketClient->readBytes();
+//     // io:println("Received: ", string:fromBytes(receivedData));
+
+//     // string msg2 = "Hi"; // 2 seconds
+//     // byte[] msgByteArray2 = msg2.toBytes();
+//     // check socketClient->writeBytes(msgByteArray2);
+
+//     // readonly & byte[] receivedData2 = check socketClient->readBytes();
+//     // io:println("Received: ", string:fromBytes(receivedData2));
+
+    
+//         io:println("A");
+//         sendMessage(socketClient, "Byes..", function (string s) returns () {
+//             io:println("Bye ", s);
+//         });
+    
+
+    
+//         io:println("B");
+//         sendMessage(socketClient, "Hi", function (string s) returns () {
+//             io:println("Hi ", s);
+//         });
+    
+
+//     return socketClient->close();
+// }
+
+
+// function sendMessage(tcp:Client tcpclient, string message, function (string reply) callback) {
+//     byte[] msgByteArray = message.toBytes();
+//     checkpanic tcpclient->writeBytes(msgByteArray);
+
+//     future<byte[] & readonly|tcp:Error> listResult = start tcpclient->readBytes();
+//     byte[] & readonly|tcp:Error res = wait listResult; 
+
+//     if !(res is tcp:Error){
+//         string reply = checkpanic string:fromBytes(res);
+//         callback(reply);
+//     }
+
+// }
 
 

@@ -7,20 +7,6 @@
 dependencies-toml-version = "2"
 
 [[package]]
-org = "asus"
-name = "different_package"
-version = "0.1.0"
-dependencies = [
-	{org = "ballerina", name = "io"},
-	{org = "ballerina", name = "log"},
-	{org = "ballerina", name = "tcp"},
-	{org = "ballerinai", name = "observe"}
-]
-modules = [
-	{org = "asus", packageName = "different_package", moduleName = "different_package"}
-]
-
-[[package]]
 org = "ballerina"
 name = "crypto"
 version = "2.0.1"
@@ -106,6 +92,20 @@ dependencies = [
 ]
 modules = [
 	{org = "ballerinai", packageName = "observe", moduleName = "observe"}
+]
+
+[[package]]
+org = "madusanka"
+name = "different_package"
+version = "0.1.0"
+dependencies = [
+	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "log"},
+	{org = "ballerina", name = "tcp"},
+	{org = "ballerinai", name = "observe"}
+]
+modules = [
+	{org = "madusanka", packageName = "different_package", moduleName = "different_package"}
 ]
 
 
