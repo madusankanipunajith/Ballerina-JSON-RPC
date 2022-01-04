@@ -1,5 +1,6 @@
 import json_rpc.'types;
 import json_rpc.util;
+import ballerina/io;
 
 # Description
 #
@@ -11,6 +12,7 @@ public isolated function messageValidator(json message) returns 'types:JsonRPCTy
 
     if jmessage is error{
         //return error("something went wrong in message conversion");
+        io:println(jmessage);
 
         json|error? errId = message.id;
         int? eid; 
@@ -33,7 +35,7 @@ public isolated function messageValidator(json message) returns 'types:JsonRPCTy
 
         if jmessage?.method is null && jmessage?.params is null && jmessage?.err is null && !(jmessage?.id === ()){
         
-            return util:sendResponse(<int> jmessage?.id,<string> jmessage?.result);
+            return util:sendResponse(<int> jmessage?.id, jmessage?.result);
         }
 
         if !(jmessage?.err is null) {

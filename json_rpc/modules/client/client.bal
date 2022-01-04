@@ -1,178 +1,215 @@
 import json_rpc.types;
+import ballerina/tcp;
+import ballerina/udp;
+import ballerina/io;
+import ballerina/lang.value;
+import json_rpc.validator;
+import ballerina/websocket;
+
+public enum Protocols {
+    TCP, UDP, WS
+}
+type BatchJRPCInput types:Request|types:Notification?[];
+type SingleJRPCInput types:Request|types:Notification;
 
 
-// 1st method
-public class singleClientRPC {
-
-    private boolean isRequest = false;
-    private types:Request request ={
-        id: 0,
-        params: null,
-        method: "",
-        jsonrpc: "2.0"
-    };
-    private types:Notification notification ={
-        params: null,
-        method: "",
-        jsonrpc: "2.0"
-    };
-
-    public function init( string method, anydata params, int? id = null){
-        if id is null {
-
-            self.notification.method = method;
-            self.notification.params = params;
-
-        }else{
-
-            self.request.id = id;
-            self.request.params = params;
-            self.request.method = method;
-
-            self.isRequest = true;
-
-        }
+public class ClientServices {
+    public function  sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response|types:Error response) callback) {
+        return;
     }
 
-    public isolated function getJRPCMessage() returns types:Request|types:Notification{
-        
-        if self.isRequest {
-            
-            return self.request;
-        
-        }else{
+    public function sendNotification(types:Notification notification) {
+        return;
+    }
 
-            return self.notification;
-        }
 
+    public function closeClient() {
+        return;
     }
 }
 
+class TCPClient {
+    *ClientServices;
 
-public class batchClientRPC {
+    private tcp:Client tcpClient;
 
-    private types:BatchJRPCInput[] batch_array = [];
-
-    public function init(types:ClientInput? input){
-        
-        if input is null {
-            
-            self.batch_array = [];
-        
-        }else{
-            
-            foreach var item in input {
-               
-                if item.id is null{
-                    
-                    types:Notification notification ={
-                        params: null,
-                        method: "",
-                        jsonrpc: "2.0"
-                    };
-                    
-                    notification.method = item.method;
-                    notification.params = item.params;
-
-                    self.batch_array.push(notification);
-                    
-                } else {
-                    types:Request request ={
-                        id: 0,
-                        params: null,
-                        method: "",
-                        jsonrpc: "2.0"
-                    };
-                    request.id = <int> item.id;
-                    request.method = item.method;
-                    request.params = item.params;
-
-                    self.batch_array.push(request);
-                }
-            }
-        }
+    public function init(string host, int port) {
+        self.tcpClient = checkpanic new(host, port);
     }
 
-    public function getJRPCMessage() returns 'types:BatchJRPCInput[]{
-        
-        return self.batch_array;
+    public function closeClient() {
+        checkpanic self.tcpClient->close();
     }
-}
-
-
-// 2nd method
-public class ClientMethods {
-
-    private types:Request request ={
-        id: 0,
-        params: null,
-        method: "",
-        jsonrpc: "2.0"
-    };
-    private types:Notification notification ={
-        params: null,
-        method: "",
-        jsonrpc: "2.0"
-    };
-    private types:BatchJRPCInput[] batch_array = [];
 
     
-    public function createRequest(string method, anydata params,int id) returns types:Request{
+
+    public function sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response|types:Error response) callback) {
+        string jsonMessage = message.toJsonString(); 
+        byte[] msgByteArray = jsonMessage.toBytes();
+        checkpanic self.tcpClient->writeBytes(msgByteArray);
+
+        // waiting for the reply
+        future<byte[] & readonly|tcp:Error> listResult = start self.tcpClient->readBytes();
+        byte[] & readonly|tcp:Error response = wait listResult;
+
+        if !(response is tcp:Error){
+            string reply = checkpanic string:fromBytes(response);
+            json jsonReply = checkpanic value:fromJsonString(reply);
+            types:JsonRPCTypes result = validator:messageValidator(jsonReply);
+            types:Response|types:Error convirtedResponse = <types:Response|types:Error> result;
             
-        self.request.id = id;
-        self.request.params = params;
-        self.request.method = method;
-
-        return self.request;
-    }
-
-    public function createNotification(string method, anydata params) returns types:Notification{
-        
-        self.notification.method = method;
-        self.notification.params = params;
-
-        return self.notification;
-    }
-
-    public function createBatch(types:ClientInput? input) returns types:BatchJRPCInput[]{
-        
-        if input is null {
-            
-            self.batch_array = [];
-        
-        }else{
-            
-            foreach var item in input {
-               
-                if item.id is null{
-                    
-                    types:Notification notification ={
-                        params: null,
-                        method: "",
-                        jsonrpc: "2.0"
-                    };
-                    
-                    notification.method = item.method;
-                    notification.params = item.params;
-
-                    self.batch_array.push(notification);
-                    
-                }else{
-                    types:Request request ={
-                        id: 0,
-                        params: null,
-                        method: "",
-                        jsonrpc: "2.0"
-                    };
-                    request.id = <int> item.id;
-                    request.method = item.method;
-                    request.params = item.params;
-
-                    self.batch_array.push(request);
-                }
-            }
+            callback(convirtedResponse);
         }
+    }
+
+    public function sendNotification(types:Notification notification) {
+
+        string jsonMessage = notification.toJsonString(); 
+        byte[] msgByteArray = jsonMessage.toBytes();
+        checkpanic self.tcpClient->writeBytes(msgByteArray);
+    }
+
+}
+
+class UDPClient {
+    *ClientServices;
+
+    private udp:Client udpClient;
+    private string udpHost;
+    private int udpPort;
+
+    public function init(string host, int port) {
+        self.udpPort = port;
+        self.udpHost = host;
+        self.udpClient = checkpanic new({localHost: host});
+    }
+    public function closeClient() {
+        checkpanic self.udpClient->close();
+    }
+
+
+    public function sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response|types:Error response) callback) {
+
+        string jsonMessage = message.toJsonString();
+
+        udp:Datagram datagram = {
+            remoteHost: self.udpHost,
+            remotePort : self.udpPort,
+            data : jsonMessage.toBytes()
+        };
+
+        checkpanic self.udpClient->sendDatagram(datagram);
+
+        // waiting for the reply
+        future<udp:Datagram & readonly|udp:Error> listResult = start self.udpClient->receiveDatagram();
+        udp:Datagram & readonly|udp:Error response = wait listResult;
+
+        if !(response is udp:Error) {
+            string reply = checkpanic string:fromBytes(response.data);
+            types:Response|types:Error convirtedResponse = <types:Response|types:Error> reply.toJson();
+            
+            callback(convirtedResponse);
+        }
+
+    }
+
+    public function sendNotification(types:Notification notification) {
+        string jsonMessage = notification.toJsonString();
+
+        udp:Datagram datagram = {
+            remoteHost: self.udpHost,
+            remotePort : self.udpPort,
+            data : jsonMessage.toBytes()
+        };
+
+        checkpanic self.udpClient->sendDatagram(datagram);
+    }
+}
+
+
+
+class WSClient {
+    *ClientServices;
+
+    private websocket:Client wsClient;
+    private string wsHost;
+    private string wsPort;
+    private string subProtocol;
+
+    public function init(string host, int port, string subProtocol="") {
+        self.wsHost = host;
+        self.wsPort = <string> port.toString();
+        self.subProtocol = subProtocol;
+
+        string url = "ws://"+self.wsHost+":"+self.wsPort; io:println(url);
         
-        return self.batch_array;
+        if subProtocol.trim().length() > 0 {
+            url = url+subProtocol;    
+        }
+
+        self.wsClient = checkpanic new(url);
+        
+    }
+
+    public function closeClient() {
+        return;
+    }
+
+    public function sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response|types:Error response) returns () callback) {
+        string jsonMessage = message.toString(); 
+        byte[] msgByteArray = jsonMessage.toBytes();
+        checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
+
+        // waiting for the response
+        future<byte[]|websocket:Error> futureResult = start self.wsClient->readBinaryMessage();
+        byte[]|websocket:Error response = wait futureResult;
+
+        if !(response is websocket:Error){
+            string reply = checkpanic string:fromBytes(response);
+            json jsonReply = checkpanic value:fromJsonString(reply);
+
+            types:JsonRPCTypes result = validator:messageValidator(jsonReply);
+            types:Response|types:Error convirtedResponse = <types:Response|types:Error> result;
+            
+            callback(convirtedResponse);
+        }
+    }
+
+    public function sendNotification(types:Notification notification) {
+        string jsonMessage = notification.toJsonString(); 
+        byte[] msgByteArray = jsonMessage.toBytes();
+        checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
+
+        byte[] _ = checkpanic self.wsClient->readBinaryMessage();
+    }
+}
+
+public class Client {
+
+    public function setConfig(string remoteHost, int remotePort, Protocols protocol, string path="") returns TCPClient|UDPClient|WSClient|error {
+        
+        match protocol {
+            
+            "TCP" => {
+                TCPClient tcpClient = new(remoteHost, remotePort);
+                io:println("TCP");
+                return tcpClient;
+            }
+
+            "UDP" =>{
+                UDPClient udpClient = new(remoteHost, remotePort);
+                io:println("UDP");
+                return udpClient;
+            }
+
+            "WS" =>{
+                WSClient wsClient = new(remoteHost, remotePort, path);
+                io:println("WS");
+                return wsClient;
+            }
+            
+        }
+
+        return error("protocol is not initialized yet");
     }
 }

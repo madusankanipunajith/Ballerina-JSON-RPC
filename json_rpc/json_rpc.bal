@@ -1,42 +1,3 @@
-
-// import json_rpc.'client;
-// import ballerina/io;
-
-// //string str = "{\"jsonrpc\":\"2.0\",\"method\":\"add\",\"params\":{\"x\":89, \"y\":100},\"id\":10}";
-// public function main() {
-  
-//   'client:singleClientRPC method1 = new(id=10,method = "add", params = 10);
-//   'client:batchClientRPC method2 = new([
-//     {method:"add", params: 10},{id: 21, method:"sub", params: [10,20]},{method: "mult", params: 23}
-//     ]);
-  
-//   io:println(method1.getJRPCMessage());
-//   io:println(method2.getJRPCMessage());
-// }
-
-
-
-
-
-
-
-
-// import json_rpc.'client;
-// import ballerina/io;
-// public function main() {
-//   'client:ClientMethods methods = new();
-//   io:println(methods.createRequest(id = 1950233543453, method = "add", params = 100));
-//   io:println(methods.createNotification(method = "add", params = 100));
-// }
-
-
-
-
-
-
-
-
-
 // import json_rpc.server;
 // import json_rpc.'types;
 // import ballerina/io;
@@ -141,6 +102,50 @@
 //         return {"convirt":self.convirtFunction, "print":self.printFunction};
 //     }
 // }
+
+import json_rpc.'types;
+import json_rpc.'client;
+import ballerina/io;
+public function main() returns error? {
+
+    'client:Client cl = new();
+    'client:ClientServices tcpService = check cl.setConfig("localhost", 9090, 'client:WS);
+
+    'types:Request r ={
+      method: "add",
+      params: {"x":10, "y":20},
+      id: 156
+    };
+
+    'types:Request s ={
+      method: "add",
+      params: 1000,
+      id: 157
+    };
+
+    //'types:Batch b = [];
+
+    'types:Notification n ={
+      method: "mult",
+      params: [10,20]
+    };
+
+    tcpService.sendMessage(r, function (types:Response|types:Error u) returns () {
+        io:println(u);
+    });
+
+    tcpService.sendNotification(n);
+    // tcpService.sendMessage(b, function (types:Response|types:Error u) returns () {
+    //    io:println(u); 
+    // });
+
+    tcpService.sendMessage(s, function (types:Response|types:Error u) returns () {
+        io:println(u);
+    }); 
+
+    tcpService.closeClient();
+
+}
 
 
 

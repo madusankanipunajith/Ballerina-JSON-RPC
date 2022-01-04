@@ -3,7 +3,7 @@ import json_rpc.'types;
 public isolated function responseObject(int requestId, any answer) returns 'types:Response{
     'types:Response res={
         id: requestId,
-        result: answer,
+        result: <anydata> answer,
         jsonrpc: "2.0"
     };
 
@@ -114,7 +114,7 @@ public isolated function sendError(int? id, json err) returns 'types:Error{
 public isolated function sendResponse(int id, any result) returns 'types:Response{
     'types:Response response ={
         id:id,
-        result:result,
+        result:<anydata> result,
         jsonrpc: "2.0"
     };
 

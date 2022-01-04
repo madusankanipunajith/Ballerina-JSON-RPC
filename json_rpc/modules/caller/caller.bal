@@ -6,7 +6,7 @@ import json_rpc.util;
 # + request - Parameter Description  
 # + func - Parameter Description
 # + return - Return Value Description  
-public isolated function executor('types:Request request, isolated function ('types:Input func) returns any|error func) returns 'types:Response|error|null{
+public isolated function executor('types:Request request, isolated function ('types:Input func) returns any|error func) returns 'types:Response|error{
 
     isolated function ('types:Input) returns any|error abstractFunction = func.clone();
     anydata parameters = request.params;
@@ -20,7 +20,7 @@ public isolated function executor('types:Request request, isolated function ('ty
 
         any _ = check abstractFunction(fetchedParameters);    
             
-            return null; 
+            return util:responseObject(request.id, "success"); 
             
     }
 

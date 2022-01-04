@@ -9,10 +9,9 @@ import json_rpc.util;
 public isolated function requestIdentifier(string requestMessage) returns 'types:Identy{
 
     any|error fetchMessage = trap value:fromJsonString(requestMessage);
-
     if fetchMessage is any[]{
-
-        if fetchMessage.length() === 0{
+        
+        if fetchMessage.length() === 0{ 
             return util:invalidRequestError();
         }else{
             return fetchMessage;

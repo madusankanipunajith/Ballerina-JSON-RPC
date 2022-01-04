@@ -1,7 +1,12 @@
 import json_rpc.caller;
 import json_rpc.'types;
 import json_rpc.util;
-import ballerina/regex;
+//import ballerina/tcp;
+//import ballerina/io;
+// import ballerina/log;
+
+type SingleJRPCOutput 'types:Response|'types:Error;
+type BatchJRPCOutput 'types:Response|'types:Error[];
 
 type BatchResponse 'types:JsonRPCTypes?[]; 
 
@@ -18,6 +23,7 @@ public class JRPCService {
         self.methods = new();
     }
 
+    // return an error by default....
     public isolated function name() returns string|error{
         return "";
     }
@@ -27,12 +33,7 @@ public class JRPCService {
 
 public class Server {
 
-    //private JRPCService jservice;
     private JRPCSA jrpcsa = [];
-
-    // public isolated function init(JRPCService srv) {
-    //     self.jservice = srv;
-    // }
 
     public isolated function init(JRPCSA services){
         self.jrpcsa = services;
@@ -42,7 +43,8 @@ public class Server {
 
             string method = result.method;
             'types:Methods allMethods = {}; 
-            string|error methodName;
+            string serviceName = "";
+            string methodName = "";
 
             if self.jrpcsa.length() == 1 {
 
@@ -50,14 +52,19 @@ public class Server {
                 methodName = method;
 
             }else if self.jrpcsa.length() > 1 {
-                
-                string[] splitMethod = regex:split(method,"/");
-                string serviceName = splitMethod[0];
 
-                methodName = trap splitMethod[1];
-                if methodName is error{
+                int? index = method.indexOf("/");
+
+                if index is int{
+
+                    serviceName = string:substring(method, 0, index);
+                    methodName = string:substring(method, index+1, method.length());
+                
+                }else{
+
                     return error("can't find the method");
                 }
+
 
                 foreach var item in self.jrpcsa {
                     if item.name() == serviceName {
@@ -72,7 +79,7 @@ public class Server {
 
             //'types:Methods allMethodss = self.jservice.methods.getMethods();
 
-            'types:Method|error selectedMethod = trap allMethods.get(check methodName);
+            'types:Method|error selectedMethod = trap allMethods.get(methodName);
 
             if selectedMethod is error {
 
@@ -85,7 +92,7 @@ public class Server {
         
     }
 
-    private isolated function executeSingleJson('types:Request message) returns 'types:Error|'types:Response?{
+    private isolated function executeSingleJson('types:Request message) returns 'types:Error|'types:Response{
 
             'types:Method|error mf = self.methodFilter(message);
 
@@ -117,7 +124,7 @@ public class Server {
 
     }
 
-    public isolated function runner(string message) returns 'types:JsonRPCTypes|BatchResponse?{
+    public isolated function runner(string message) returns 'types:JsonRPCTypes|BatchResponse|null{
        
         'types:Identy identity = caller:requestIdentifier(message);
 
@@ -132,7 +139,11 @@ public class Server {
             }
 
             if caller:checker(identity) is 'types:Error{
-                return caller:checker(identity);
+                return <'types:Error> caller:checker(identity);
+            }
+
+            if caller:checker(identity) is null{
+                return null;
             }
            
         }   
@@ -142,6 +153,11 @@ public class Server {
         }
 
         return util:serverError();
+    }
+
+
+    public isolated function sendReply(){
+
     }
 
 }
