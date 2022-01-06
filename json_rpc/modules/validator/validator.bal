@@ -28,7 +28,7 @@ public isolated function messageValidator(json message) returns 'types:JsonRPCTy
 
     else{
 
-        if jmessage?.id === () && !(jmessage?.method is null) && !(jmessage?.params is null){
+        if jmessage?.id === () && !(jmessage?.method is null){
         
             return util:sendNotification(<string> jmessage?.method,jmessage?.params);
         }

@@ -4,17 +4,37 @@ import ballerina/udp;
 import ballerina/io;
 import ballerina/lang.value;
 import json_rpc.validator;
-import ballerina/websocket;
+//import ballerina/websocket;
 
 public enum Protocols {
     TCP, UDP, WS
 }
 type BatchJRPCInput types:Request|types:Notification?[];
-type SingleJRPCInput types:Request|types:Notification;
+type SingleJRPCInput types:Request;
+type BatchJRPCOutput 'types:JsonRPCTypes?[]; 
 
+function fetchResponse(string response) returns types:JRPCResponse{
+    any|error fetchMessage = trap value:fromJsonString(response);
+
+    if fetchMessage is any[]{
+     
+        return <BatchJRPCOutput>fetchMessage;
+    
+    }else if fetchMessage is json{
+
+        types:JsonRPCTypes result = validator:messageValidator(fetchMessage);
+        types:Response|types:Error convirtedResponse = <types:Response|types:Error> result;
+        return convirtedResponse;
+    
+    }else{
+
+        return null;
+    
+    }
+}
 
 public class ClientServices {
-    public function  sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response|types:Error response) callback) {
+    public function  sendMessage(SingleJRPCInput|BatchJRPCInput message) returns types:JRPCResponse{
         return;
     }
 
@@ -25,6 +45,14 @@ public class ClientServices {
 
     public function closeClient() {
         return;
+    }
+}
+
+// method wrapper
+public class JRPCClientMethods {
+    public ClientServices clientServices;
+    public function init(ClientServices cls) {
+        self.clientServices = cls;
     }
 }
 
@@ -43,7 +71,7 @@ class TCPClient {
 
     
 
-    public function sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response|types:Error response) callback) {
+    public function sendMessage(SingleJRPCInput|BatchJRPCInput message) returns types:Response|types:Error|BatchJRPCOutput|null{
         string jsonMessage = message.toJsonString(); 
         byte[] msgByteArray = jsonMessage.toBytes();
         checkpanic self.tcpClient->writeBytes(msgByteArray);
@@ -54,11 +82,9 @@ class TCPClient {
 
         if !(response is tcp:Error){
             string reply = checkpanic string:fromBytes(response);
-            json jsonReply = checkpanic value:fromJsonString(reply);
-            types:JsonRPCTypes result = validator:messageValidator(jsonReply);
-            types:Response|types:Error convirtedResponse = <types:Response|types:Error> result;
             
-            callback(convirtedResponse);
+            return fetchResponse(reply);
+            
         }
     }
 
@@ -88,7 +114,7 @@ class UDPClient {
     }
 
 
-    public function sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response|types:Error response) callback) {
+    public function sendMessage(SingleJRPCInput|BatchJRPCInput message) returns types:Response|types:Error|BatchJRPCOutput|null{
 
         string jsonMessage = message.toJsonString();
 
@@ -106,9 +132,7 @@ class UDPClient {
 
         if !(response is udp:Error) {
             string reply = checkpanic string:fromBytes(response.data);
-            types:Response|types:Error convirtedResponse = <types:Response|types:Error> reply.toJson();
-            
-            callback(convirtedResponse);
+            return fetchResponse(reply);
         }
 
     }
@@ -128,65 +152,65 @@ class UDPClient {
 
 
 
-class WSClient {
-    *ClientServices;
+// class WSClient {
+//     *ClientServices;
 
-    private websocket:Client wsClient;
-    private string wsHost;
-    private string wsPort;
-    private string subProtocol;
+//     private websocket:Client wsClient;
+//     private string wsHost;
+//     private string wsPort;
+//     private string subProtocol;
 
-    public function init(string host, int port, string subProtocol="") {
-        self.wsHost = host;
-        self.wsPort = <string> port.toString();
-        self.subProtocol = subProtocol;
+//     public function init(string host, int port, string subProtocol="") {
+//         self.wsHost = host;
+//         self.wsPort = <string> port.toString();
+//         self.subProtocol = subProtocol;
 
-        string url = "ws://"+self.wsHost+":"+self.wsPort; io:println(url);
+//         string url = "ws://"+self.wsHost+":"+self.wsPort; io:println(url);
         
-        if subProtocol.trim().length() > 0 {
-            url = url+subProtocol;    
-        }
+//         if subProtocol.trim().length() > 0 {
+//             url = url+subProtocol;    
+//         }
 
-        self.wsClient = checkpanic new(url);
+//         self.wsClient = checkpanic new(url);
         
-    }
+//     }
 
-    public function closeClient() {
-        return;
-    }
+//     public function closeClient() {
+//         return;
+//     }
 
-    public function sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response|types:Error response) returns () callback) {
-        string jsonMessage = message.toString(); 
-        byte[] msgByteArray = jsonMessage.toBytes();
-        checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
+//     public function sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response|types:Error response) returns () callback) {
+//         string jsonMessage = message.toString(); 
+//         byte[] msgByteArray = jsonMessage.toBytes();
+//         checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
 
-        // waiting for the response
-        future<byte[]|websocket:Error> futureResult = start self.wsClient->readBinaryMessage();
-        byte[]|websocket:Error response = wait futureResult;
+//         // waiting for the response
+//         future<byte[]|websocket:Error> futureResult = start self.wsClient->readBinaryMessage();
+//         byte[]|websocket:Error response = wait futureResult;
 
-        if !(response is websocket:Error){
-            string reply = checkpanic string:fromBytes(response);
-            json jsonReply = checkpanic value:fromJsonString(reply);
+//         if !(response is websocket:Error){
+//             string reply = checkpanic string:fromBytes(response);
+//             json jsonReply = checkpanic value:fromJsonString(reply);
 
-            types:JsonRPCTypes result = validator:messageValidator(jsonReply);
-            types:Response|types:Error convirtedResponse = <types:Response|types:Error> result;
+//             types:JsonRPCTypes result = validator:messageValidator(jsonReply);
+//             types:Response|types:Error convirtedResponse = <types:Response|types:Error> result;
             
-            callback(convirtedResponse);
-        }
-    }
+//             callback(convirtedResponse);
+//         }
+//     }
 
-    public function sendNotification(types:Notification notification) {
-        string jsonMessage = notification.toJsonString(); 
-        byte[] msgByteArray = jsonMessage.toBytes();
-        checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
+//     public function sendNotification(types:Notification notification) {
+//         string jsonMessage = notification.toJsonString(); 
+//         byte[] msgByteArray = jsonMessage.toBytes();
+//         checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
 
-        byte[] _ = checkpanic self.wsClient->readBinaryMessage();
-    }
-}
+//         byte[] _ = checkpanic self.wsClient->readBinaryMessage();
+//     }
+// }
 
 public class Client {
 
-    public function setConfig(string remoteHost, int remotePort, Protocols protocol, string path="") returns TCPClient|UDPClient|WSClient|error {
+    public function setConfig(string remoteHost, int remotePort, Protocols protocol, string path="") returns TCPClient|UDPClient|error {
         
         match protocol {
             
@@ -202,14 +226,15 @@ public class Client {
                 return udpClient;
             }
 
-            "WS" =>{
-                WSClient wsClient = new(remoteHost, remotePort, path);
-                io:println("WS");
-                return wsClient;
-            }
+            // "WS" =>{
+            //     WSClient wsClient = new(remoteHost, remotePort, path);
+            //     io:println("WS");
+            //     return wsClient;
+            // }
             
         }
 
         return error("protocol is not initialized yet");
     }
 }
+

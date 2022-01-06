@@ -1,4 +1,4 @@
-import json_rpc.'types;
+import json_rpc.types;
 import json_rpc.'client;
 import ballerina/io;
 public function main() returns error? {
@@ -55,4 +55,3 @@ class ClientMethods {
     self.clientServices.sendNotification(n);
   }
 }
-

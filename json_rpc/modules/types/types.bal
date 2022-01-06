@@ -1,5 +1,5 @@
 public type JsonRecord record {|
-    int id?;
+    int? id?;
     string method?;
     anydata result?;
     anydata params?;
@@ -52,6 +52,8 @@ public type Method isolated function (Input) returns any|error;
 public type Methods record {|
     isolated function (Input) returns any|error...;
 |};
+
+public type JRPCResponse Response|Error|JsonRPCTypes?[]|null;
 
 public class JRPCMethods {
 

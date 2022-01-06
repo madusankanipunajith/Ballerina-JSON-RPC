@@ -1,12 +1,6 @@
 import json_rpc.caller;
 import json_rpc.'types;
 import json_rpc.util;
-//import ballerina/tcp;
-//import ballerina/io;
-// import ballerina/log;
-
-type SingleJRPCOutput 'types:Response|'types:Error;
-type BatchJRPCOutput 'types:Response|'types:Error[];
 
 type BatchResponse 'types:JsonRPCTypes?[]; 
 
@@ -39,7 +33,7 @@ public class Server {
         self.jrpcsa = services;
     }
 
-    private isolated function methodFilter('types:Request result) returns 'types:Method|error{
+    private isolated function methodFilter('types:Request|'types:Notification result) returns 'types:Method|error{
 
             string method = result.method;
             'types:Methods allMethods = {}; 
@@ -92,16 +86,29 @@ public class Server {
         
     }
 
-    private isolated function executeSingleJson('types:Request message) returns 'types:Error|'types:Response{
+    private isolated function executeSingleJsonRequest('types:Request message) returns 'types:Error|'types:Response|null{
 
-            'types:Method|error mf = self.methodFilter(message);
+        'types:Method|error mf = self.methodFilter(message);
 
-            if mf is error{
-                return util:methodNotFoundError(message.id);
-            }
+        if mf is error{    
+                    
+            return util:methodNotFoundError(message.id);
+            
+        }
 
-            return checkpanic caller:executor(message, mf);
+        return checkpanic caller:executor(message, mf);
 
+    }
+
+    private isolated function executeSingleJsonNotification('types:Notification message) returns null{
+        'types:Method|error mf = self.methodFilter(message);
+
+        if mf is error{
+            return null;
+        }
+
+        types:Response|null _ = checkpanic caller:executor(message, mf);
+        return null;
     }
 
     private isolated function executeBatchJson(json[] message) returns BatchResponse{
@@ -110,7 +117,12 @@ public class Server {
             foreach var item in message {
                 
                 if caller:checker(item) is 'types:Request{
-                    batch_res_array.push(self.executeSingleJson(<'types:Request> caller:checker(item)));
+                    batch_res_array.push(self.executeSingleJsonRequest(<'types:Request> caller:checker(item)));
+                }
+
+                if caller:checker(item) is 'types:Notification{
+                    // discarding the output of the executor
+                    null _ = self.executeSingleJsonNotification(<'types:Notification> caller:checker(item));
                 }
 
                 if caller:checker(item) is 'types:Error{
@@ -135,11 +147,15 @@ public class Server {
         if identity is map<json>{
            
             if caller:checker(identity) is 'types:Request {
-                return self.executeSingleJson(<'types:Request> caller:checker(identity));     
+                return self.executeSingleJsonRequest(<'types:Request> caller:checker(identity));     
             }
 
             if caller:checker(identity) is 'types:Error{
                 return <'types:Error> caller:checker(identity);
+            }
+
+            if caller:checker(identity) is 'types:Notification{
+                return self.executeSingleJsonNotification(<'types:Notification> caller:checker(identity));
             }
 
             if caller:checker(identity) is null{

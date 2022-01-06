@@ -2,5 +2,5 @@
 org = "asus"
 name = "json_rpc"
 version = "0.1.0"
-export=["json_rpc.server", "json_rpc.types"]
+export=["json_rpc.server", "json_rpc.types", "json_rpc.client"]
 distribution = "slbeta4"
