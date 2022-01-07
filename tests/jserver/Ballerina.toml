@@ -1,5 +1,8 @@
 [package]
-distribution = "slbeta4"
+name="jserver"
+org="testorg"
+version="0.1.0"
+distribution = "slbeta6"
 
 [build-options]
 observabilityIncluded = true
