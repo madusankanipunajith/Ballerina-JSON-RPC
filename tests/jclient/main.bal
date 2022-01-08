@@ -3,6 +3,14 @@ import asus/json_rpc.'client;
 import ballerina/io;
 public function main() returns error? {
 
+    // draft
+
+    // 'client:Client cl1 = new("localhost", 9000, 'client:TCP, clm);
+    //   cl1.ops().addFunction(125, {"x":10, "y":20}, function (types:JRPCResponse t) returns () {
+    //   io:println(t);   
+    // });
+
+
     'client:Client cl = new();
     'client:ClientServices tcpService = check cl.setConfig("localhost", 9000, 'client:TCP);
 

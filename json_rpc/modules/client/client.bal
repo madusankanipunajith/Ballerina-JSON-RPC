@@ -4,8 +4,8 @@ import ballerina/udp;
 import ballerina/io;
 import ballerina/lang.value;
 import json_rpc.validator;
-
 //import ballerina/websocket;
+
 public enum Protocols {
     TCP,
     UDP,
@@ -45,10 +45,12 @@ public class ClientServices {
 
 // method wrapper
 public class JRPCClientMethods {
-    public ClientServices clientServices;
+    //public ClientServices clientServices;
+    public Client jsonClient;
 
-    public function init(ClientServices cls) {
-        self.clientServices = cls;
+    public function init(Client cls) {
+        self.jsonClient = cls;
+    //    self.clientServices = self.jsonClient.getClientService();
     }
 }
 
@@ -197,7 +199,29 @@ class UDPClient {
 
 public class Client {
 
-    public function setConfig(string remoteHost, int remotePort, Protocols protocol, string path = "") returns TCPClient|UDPClient|error {
+    private ClientServices clientService = new();
+
+    public function init(string remoteHost, int remotePort, Protocols protocol) {
+        
+        match protocol {
+            
+            "TCP"=>{
+                io:println("TCP");
+                TCPClient tcpClient = new(remoteHost,remotePort);
+                self.clientService = tcpClient;
+            }
+
+            "UDP"=>{
+                UDPClient udpClient = new(remoteHost,remotePort);
+                self.clientService = udpClient;
+            }
+        }
+
+        
+    }
+
+
+    private function setConfig(string remoteHost, int remotePort, Protocols protocol) returns ClientServices|error {
         match protocol {
             "TCP" => {
                 TCPClient tcpClient = new (remoteHost, remotePort);
@@ -217,6 +241,14 @@ public class Client {
         }
 
         return error("protocol is not initialized yet");
+    }
+
+    public function getClientService() returns ClientServices{
+        return self.clientService;
+    }
+
+    public function closeClient() {
+        self.clientService.closeClient();
     }
 }
 
