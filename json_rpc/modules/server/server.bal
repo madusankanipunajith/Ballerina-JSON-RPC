@@ -3,8 +3,10 @@ import json_rpc.'types;
 import json_rpc.util;
 
 type BatchResponse 'types:JsonRPCTypes?[];
+
 # User Input parameters  
 public type Input 'types:InputFunc|anydata[];
+
 public type JRPCSA JRPCService[];
 
 public class JRPCService {
@@ -101,7 +103,6 @@ public class Server {
             }
         }
         return batch_res_array;
-
     }
 
     public isolated function runner(string message) returns 'types:JsonRPCTypes|BatchResponse|null {

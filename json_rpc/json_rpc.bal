@@ -1,67 +1,61 @@
 import json_rpc.'types;
 import json_rpc.'client;
 import ballerina/io;
+
 public function main() returns error? {
 
-
-    'client:Client cl = new("localhost", 9000, 'client:UDP);
-    ClientMethods clm = new(cl);
+    'client:Client cl = new ("localhost", 9000, 'client:TCP, new CalculatorMethod());
+    CalculatorMethod calculatorMethod = <CalculatorMethod>cl.ops();
     
-    clm.addFunction(125, {"x":10, "y":20}, function (types:JRPCResponse t) returns () {
-        io:println(t);   
+    calculatorMethod.addFunction(125, {"x": 10, "y": 20}, function(types:JRPCResponse t) returns () {
+        io:println(t);
     });
 
+    calculatorMethod.subFunction(189, {"x": 200, "y": 100}, function (types:JRPCResponse t) returns () {
+       io:println(t); 
+    });
 
     cl.closeClient();
 
-//     clm.addFunction(125, {"x":10, "y":20}, function (types:JRPCResponse t) returns () {
-//      io:println(t);   
-//     });
-
-//     tcpService.closeClient();
 
 }
 
+class CalculatorMethod {
+    *'client:JRPCClientMethods;
 
-class ClientMethods {
-  *'client:JRPCClientMethods;
-
-    private 'client:ClientServices clientServices;
-
-    function init('client:Client cl) {
-        self.jsonClient = cl;
-        self.clientServices = cl.getClientService();
+    function init() {
+        self.clientService = new();
     }
 
-  public function addFunction(int id,json params, function ('types:JRPCResponse response) callback) {
-    'types:Request r ={
-      id:id,
-      params: params,
-      method:"add"
-    };
+    public function addFunction(int id, json params, function ('types:JRPCResponse response) callback) {
+        'types:Request r = {
+            id: id,
+            params: params,
+            method: "add"
+        };
 
-    types:JRPCResponse sendMessage = self.clientServices.sendMessage(r);
-    callback(sendMessage);
-  }
+        types:JRPCResponse sendMessage = self.clientService.sendMessage(r);
+        callback(sendMessage);
+    }
 
-  public function subFunction(int id,json params, function ('types:JRPCResponse response) callback) {
-    'types:Request r ={
-      id:id,
-      params: params,
-      method:"sub"
-    };
+    public function subFunction(int id, json params, function ('types:JRPCResponse response) callback) {
+        'types:Request r = {
+            id: id,
+            params: params,
+            method: "sub"
+        };
 
-    types:JRPCResponse sendMessage = self.clientServices.sendMessage(r);
-    callback(sendMessage);
-  }
+        types:JRPCResponse sendMessage = self.clientService.sendMessage(r);
+        callback(sendMessage);
+    }
 
-  public function notFunction(json params) {
-    'types:Notification n ={
-      params: params,
-      method: "mult"
-    };
+    public function notFunction(json params) {
+        'types:Notification n = {
+            params: params,
+            method: "mult"
+        };
 
-    self.clientServices.sendNotification(n);
- }
+        self.clientService.sendNotification(n);
+    }
 }
 

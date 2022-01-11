@@ -22,7 +22,7 @@ public isolated function messageValidator(json message) returns 'types:JsonRPCTy
         }
 
         return util:sendError(eid, {code: "-32600", message: "something went wrong in message conversion or Invalid request"});
-    }else {
+    } else {
 
         if jmessage?.id === () && !(jmessage?.method is null) {
             return util:sendNotification(<string>jmessage?.method, jmessage?.params);

@@ -4,6 +4,7 @@ import ballerina/udp;
 import ballerina/io;
 import ballerina/lang.value;
 import json_rpc.validator;
+
 //import ballerina/websocket;
 
 public enum Protocols {
@@ -11,15 +12,27 @@ public enum Protocols {
     UDP,
     WS
 }
+
 type BatchJRPCInput types:Request|types:Notification?[];
+
 type SingleJRPCInput types:Request;
+
 type BatchJRPCOutput 'types:JsonRPCTypes?[];
 
 function fetchResponse(string response) returns types:JRPCResponse {
+    BatchJRPCOutput bjo = [];
+
     any|error fetchMessage = trap value:fromJsonString(response);
 
     if fetchMessage is any[] {
-        return <BatchJRPCOutput>fetchMessage;
+        if fetchMessage.length() === 0 {
+            return <BatchJRPCOutput>[];
+        } else {
+            foreach var item in fetchMessage {
+                bjo.push(validator:messageValidator(<json>item));
+            }
+            return bjo;
+        }
     } else if fetchMessage is json {
         types:JsonRPCTypes result = validator:messageValidator(fetchMessage);
         types:Response|types:Error convirtedResponse = <types:Response|types:Error>result;
@@ -45,12 +58,10 @@ public class ClientServices {
 
 // method wrapper
 public class JRPCClientMethods {
-    //public ClientServices clientServices;
-    public Client jsonClient;
+    public ClientServices clientService;
 
-    public function init(Client cls) {
-        self.jsonClient = cls;
-    //    self.clientServices = self.jsonClient.getClientService();
+    public function init() {
+        self.clientService = new ();
     }
 }
 
@@ -101,7 +112,7 @@ class UDPClient {
         self.udpHost = host;
         self.udpClient = checkpanic new ({localHost: host});
     }
-    
+
     public function closeClient() {
         checkpanic self.udpClient->close();
     }
@@ -199,51 +210,34 @@ class UDPClient {
 
 public class Client {
 
-    private ClientServices clientService = new();
+    private ClientServices clientService = new ();
+    private JRPCClientMethods jclmethods;
 
-    public function init(string remoteHost, int remotePort, Protocols protocol) {
-        
+    public function init(string remoteHost, int remotePort, Protocols protocol, JRPCClientMethods jclm) {
+
         match protocol {
-            
-            "TCP"=>{
+            "TCP" => {
                 io:println("TCP");
-                TCPClient tcpClient = new(remoteHost,remotePort);
+                TCPClient tcpClient = new (remoteHost, remotePort);
                 self.clientService = tcpClient;
             }
 
-            "UDP"=>{
-                UDPClient udpClient = new(remoteHost,remotePort);
+            "UDP" => {
+                io:println("UDP");
+                UDPClient udpClient = new (remoteHost, remotePort);
                 self.clientService = udpClient;
             }
         }
 
-        
+        jclm.clientService = self.clientService;
+        self.jclmethods = jclm;
     }
 
-
-    private function setConfig(string remoteHost, int remotePort, Protocols protocol) returns ClientServices|error {
-        match protocol {
-            "TCP" => {
-                TCPClient tcpClient = new (remoteHost, remotePort);
-                io:println("TCP");
-                return tcpClient;
-            }
-            "UDP" => {
-                UDPClient udpClient = new (remoteHost, remotePort);
-                io:println("UDP");
-                return udpClient;
-            }
-            // "WS" =>{
-            //     WSClient wsClient = new(remoteHost, remotePort, path);
-            //     io:println("WS");
-            //     return wsClient;
-            // }
-        }
-
-        return error("protocol is not initialized yet");
+    public function ops() returns JRPCClientMethods {
+        return self.jclmethods;
     }
 
-    public function getClientService() returns ClientServices{
+    public function getClientService() returns ClientServices {
         return self.clientService;
     }
 
