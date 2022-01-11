@@ -63,3 +63,19 @@ public class JRPCMethods {
 
 }
 
+public type TCPConfig record {|
+    string tcpRemoteHost;
+    int tcpRemotePort;
+|};
+
+public type UDPConfig record {|
+    string udpRemoteHost;
+    int udpRemotePort;
+|};
+
+public type WSConfig record {|
+    string wsRemoteHost;
+    int wsRemotePort;
+    string path = "";
+|};
+

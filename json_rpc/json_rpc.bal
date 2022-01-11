@@ -4,7 +4,12 @@ import ballerina/io;
 
 public function main() returns error? {
 
-    'client:Client cl = new ("localhost", 9000, 'client:TCP, new CalculatorMethod());
+    'types:TCPConfig tcpConfig={
+       tcpRemoteHost: "localhost",
+       tcpRemotePort: 9000
+    };
+
+    'client:Client cl = new (tcpConfig, new CalculatorMethod());
     CalculatorMethod calculatorMethod = <CalculatorMethod>cl.ops();
     
     calculatorMethod.addFunction(125, {"x": 10, "y": 20}, function(types:JRPCResponse t) returns () {
@@ -16,7 +21,6 @@ public function main() returns error? {
     });
 
     cl.closeClient();
-
 
 }
 

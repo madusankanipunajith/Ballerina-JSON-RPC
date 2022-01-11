@@ -212,23 +212,34 @@ public class Client {
 
     private ClientServices clientService = new ();
     private JRPCClientMethods jclmethods;
+    private string remoteHost;
+    private int remotePort;
+    private string path;
 
-    public function init(string remoteHost, int remotePort, Protocols protocol, JRPCClientMethods jclm) {
-
-        match protocol {
-            "TCP" => {
-                io:println("TCP");
-                TCPClient tcpClient = new (remoteHost, remotePort);
-                self.clientService = tcpClient;
-            }
-
-            "UDP" => {
-                io:println("UDP");
-                UDPClient udpClient = new (remoteHost, remotePort);
-                self.clientService = udpClient;
-            }
+    public function init(types:TCPConfig|types:UDPConfig|types:WSConfig clientProtocolConfig , JRPCClientMethods jclm) {
+        
+        if clientProtocolConfig is types:TCPConfig{
+            io:println("TCP");
+            self.remoteHost = clientProtocolConfig.tcpRemoteHost;
+            self.remotePort = clientProtocolConfig.tcpRemotePort;
+            TCPClient tcpClient = new (self.remoteHost, self.remotePort);
+            self.clientService = tcpClient;
         }
-
+        else if clientProtocolConfig is types:UDPConfig{        
+            io:println("UDP");
+            self.remoteHost = clientProtocolConfig.udpRemoteHost;
+            self.remotePort = clientProtocolConfig.udpRemotePort;
+            UDPClient udpClient = new (self.remoteHost, self.remotePort);
+            self.clientService = udpClient;
+        }
+        else {
+            io:println("WS");
+            self.remoteHost = clientProtocolConfig.wsRemoteHost;
+            self.remotePort = clientProtocolConfig.wsRemotePort;
+            self.path = clientProtocolConfig.path;
+            
+        }
+        
         jclm.clientService = self.clientService;
         self.jclmethods = jclm;
     }
