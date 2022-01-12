@@ -4,8 +4,7 @@ import ballerina/udp;
 import ballerina/io;
 import ballerina/lang.value;
 import json_rpc.validator;
-
-//import ballerina/websocket;
+import ballerina/websocket;
 
 public enum Protocols {
     TCP,
@@ -152,61 +151,56 @@ class UDPClient {
     }
 }
 
-// class WSClient {
-//     *ClientServices;
+class WSClient {
+    *ClientServices;
 
-//     private websocket:Client wsClient;
-//     private string wsHost;
-//     private string wsPort;
-//     private string subProtocol;
+    private websocket:Client wsClient;
+    private string wsHost;
+    private string wsPort;
+    private string subProtocol;
 
-//     public function init(string host, int port, string subProtocol="") {
-//         self.wsHost = host;
-//         self.wsPort = <string> port.toString();
-//         self.subProtocol = subProtocol;
+    public function init(string host, int port, string subProtocol="") {
+        self.wsHost = host;
+        self.wsPort = <string> port.toString();
+        self.subProtocol = subProtocol;
 
-//         string url = "ws://"+self.wsHost+":"+self.wsPort; io:println(url);
+        string url = "ws://"+self.wsHost+":"+self.wsPort; io:println(url);
 
-//         if subProtocol.trim().length() > 0 {
-//             url = url+subProtocol;    
-//         }
+        if subProtocol.trim().length() > 0 {
+            url = url+subProtocol;    
+        }
 
-//         self.wsClient = checkpanic new(url);
+        self.wsClient = checkpanic new(url);
 
-//     }
+    }
 
-//     public function closeClient() {
-//         return;
-//     }
+    public function closeClient() {
+        return;
+    }
 
-//     public function sendMessage(SingleJRPCInput|BatchJRPCInput message, function (types:Response|types:Error response) returns () callback) {
-//         string jsonMessage = message.toString(); 
-//         byte[] msgByteArray = jsonMessage.toBytes();
-//         checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
+    public function sendMessage(SingleJRPCInput|BatchJRPCInput message) returns  types:Response|types:Error|BatchJRPCOutput|null{
+        string jsonMessage = message.toString(); 
+        byte[] msgByteArray = jsonMessage.toBytes();
+        checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
 
-//         // waiting for the response
-//         future<byte[]|websocket:Error> futureResult = start self.wsClient->readBinaryMessage();
-//         byte[]|websocket:Error response = wait futureResult;
+        // waiting for the response
+        future<byte[]|websocket:Error> futureResult = start self.wsClient->readBinaryMessage();
+        byte[]|websocket:Error response = wait futureResult;
 
-//         if !(response is websocket:Error){
-//             string reply = checkpanic string:fromBytes(response);
-//             json jsonReply = checkpanic value:fromJsonString(reply);
+        if !(response is websocket:Error){
+            string reply = checkpanic string:fromBytes(response);
+            return fetchResponse(reply);
+        }
+    }
 
-//             types:JsonRPCTypes result = validator:messageValidator(jsonReply);
-//             types:Response|types:Error convirtedResponse = <types:Response|types:Error> result;
+    public function sendNotification(types:Notification notification) {
+        string jsonMessage = notification.toJsonString(); 
+        byte[] msgByteArray = jsonMessage.toBytes();
+        checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
 
-//             callback(convirtedResponse);
-//         }
-//     }
-
-//     public function sendNotification(types:Notification notification) {
-//         string jsonMessage = notification.toJsonString(); 
-//         byte[] msgByteArray = jsonMessage.toBytes();
-//         checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
-
-//         byte[] _ = checkpanic self.wsClient->readBinaryMessage();
-//     }
-// }
+        byte[] _ = checkpanic self.wsClient->readBinaryMessage();
+    }
+}
 
 public class Client {
 
@@ -216,16 +210,16 @@ public class Client {
     private int remotePort;
     private string path;
 
-    public function init(types:TCPConfig|types:UDPConfig|types:WSConfig clientProtocolConfig , JRPCClientMethods jclm) {
-        
-        if clientProtocolConfig is types:TCPConfig{
+    public function init(types:TCPConfig|types:UDPConfig|types:WSConfig clientProtocolConfig, JRPCClientMethods jclm) {
+
+        if clientProtocolConfig is types:TCPConfig {
             io:println("TCP");
             self.remoteHost = clientProtocolConfig.tcpRemoteHost;
             self.remotePort = clientProtocolConfig.tcpRemotePort;
             TCPClient tcpClient = new (self.remoteHost, self.remotePort);
             self.clientService = tcpClient;
         }
-        else if clientProtocolConfig is types:UDPConfig{        
+        else if clientProtocolConfig is types:UDPConfig {
             io:println("UDP");
             self.remoteHost = clientProtocolConfig.udpRemoteHost;
             self.remotePort = clientProtocolConfig.udpRemotePort;
@@ -237,9 +231,10 @@ public class Client {
             self.remoteHost = clientProtocolConfig.wsRemoteHost;
             self.remotePort = clientProtocolConfig.wsRemotePort;
             self.path = clientProtocolConfig.path;
-            
+            WSClient wsClient = new(self.remoteHost, self.remotePort, self.path);
+            self.clientService = wsClient;
         }
-        
+
         jclm.clientService = self.clientService;
         self.jclmethods = jclm;
     }

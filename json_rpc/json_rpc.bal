@@ -12,7 +12,7 @@ public function main() returns error? {
     'client:Client cl = new (tcpConfig, new CalculatorMethod());
     CalculatorMethod calculatorMethod = <CalculatorMethod>cl.ops();
     
-    calculatorMethod.addFunction(125, {"x": 10, "y": 20}, function(types:JRPCResponse t) returns () {
+    calculatorMethod.addFunction(125, 100, function(types:JRPCResponse t) returns () {
         io:println(t);
     });
 
