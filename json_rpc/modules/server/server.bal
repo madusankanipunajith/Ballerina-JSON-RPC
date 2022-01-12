@@ -9,8 +9,16 @@ public type Input 'types:InputFunc|anydata[];
 
 public type JRPCSA JRPCService[];
 
+public class JRPCMethods {
+
+    public isolated function getMethods() returns types:Methods{
+        return {};
+    }
+
+}
+
 public class JRPCService {
-    public 'types:JRPCMethods methods;
+    public JRPCMethods methods;
 
     public isolated function init() {
         self.methods = new ();

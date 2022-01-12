@@ -55,14 +55,6 @@ public type Methods record {|
 
 public type JRPCResponse Response|Error|JsonRPCTypes?[]|();
 
-public class JRPCMethods {
-
-    public isolated function getMethods() returns Methods{
-        return {};
-    }
-
-}
-
 public type TCPConfig record {|
     string tcpRemoteHost;
     int tcpRemotePort;

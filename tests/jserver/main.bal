@@ -67,7 +67,7 @@ class Calculator{
 }
 
 isolated class CalcMethods {
-  *'types:JRPCMethods;
+  *server:JRPCMethods;
 
     isolated function addFunction(server:Input ifs) returns int|error{
       Nip nip = check ifs.cloneWithType();
@@ -106,7 +106,7 @@ class Thermometer {
 }
 
 isolated class TherMethods {
-  *'types:JRPCMethods;
+  *server:JRPCMethods;
 
     isolated function convirtFunction(server:Input ifs) returns error|float{
       Temp temp = check ifs.cloneWithType();

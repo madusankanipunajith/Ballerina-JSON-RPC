@@ -6,12 +6,6 @@ import ballerina/lang.value;
 import json_rpc.validator;
 import ballerina/websocket;
 
-public enum Protocols {
-    TCP,
-    UDP,
-    WS
-}
-
 type BatchJRPCInput types:Request|types:Notification?[];
 
 type SingleJRPCInput types:Request;
