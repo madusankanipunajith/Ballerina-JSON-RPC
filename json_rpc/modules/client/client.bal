@@ -239,17 +239,17 @@ public class Client {
         self.array = jclm;
     }
 
-    public function ops(typedesc t) returns JRPCClientMethods|error {
+    public function ops(typedesc typeDesc) returns JRPCClientMethods|error {
         
         foreach var item in self.array {
-            self.tdesc = t;
+            self.tdesc = typeDesc;
             if((typeof item).toString() === self.tdesc.toString()){
                 self.jclmethods = item;
                 return self.jclmethods;
             }
         }
 
-        return error(self.tdesc.toString()+" method is not initialized");
+        return error(self.tdesc.toString()+" is not initialized");
     }
 
     public function getClientService() returns ClientServices {

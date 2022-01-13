@@ -68,7 +68,7 @@ public class Server {
 
         return util:serverError();
     }
-
+    
     private isolated function methodFilter('types:Request|'types:Notification result) returns 'types:Method|error {
         string method = result.method;
         'types:Methods allMethods = {};

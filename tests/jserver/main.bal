@@ -32,7 +32,8 @@ service class MainTCPService {
 
         // calling the library
         Calculator calc = new();
-        server:Server s1 = new([calc]);
+        Thermometer termo = new();
+        server:Server s1 = new([calc, termo]);
         string input = checkpanic string:fromBytes(data); 
         any runner = s1.runner(input);io:println(runner);
 
