@@ -153,18 +153,19 @@ class WSClient {
     private string wsPort;
     private string subProtocol;
 
-    public function init(string host, int port, string subProtocol="") {
+    public function init(string host, int port, string subProtocol = "") {
         self.wsHost = host;
-        self.wsPort = <string> port.toString();
+        self.wsPort = <string>port.toString();
         self.subProtocol = subProtocol;
 
-        string url = "ws://"+self.wsHost+":"+self.wsPort; io:println(url);
+        string url = "ws://" + self.wsHost + ":" + self.wsPort;
+        io:println(url);
 
         if subProtocol.trim().length() > 0 {
-            url = url+subProtocol;    
+            url = url + subProtocol;
         }
 
-        self.wsClient = checkpanic new(url);
+        self.wsClient = checkpanic new (url);
 
     }
 
@@ -172,8 +173,8 @@ class WSClient {
         return;
     }
 
-    public function sendMessage(SingleJRPCInput|BatchJRPCInput message) returns  types:Response|types:Error|BatchJRPCOutput|null{
-        string jsonMessage = message.toString(); 
+    public function sendMessage(SingleJRPCInput|BatchJRPCInput message) returns types:Response|types:Error|BatchJRPCOutput|null {
+        string jsonMessage = message.toString();
         byte[] msgByteArray = jsonMessage.toBytes();
         checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
 
@@ -181,14 +182,14 @@ class WSClient {
         future<byte[]|websocket:Error> futureResult = start self.wsClient->readBinaryMessage();
         byte[]|websocket:Error response = wait futureResult;
 
-        if !(response is websocket:Error){
+        if !(response is websocket:Error) {
             string reply = checkpanic string:fromBytes(response);
             return fetchResponse(reply);
         }
     }
 
     public function sendNotification(types:Notification notification) {
-        string jsonMessage = notification.toJsonString(); 
+        string jsonMessage = notification.toJsonString();
         byte[] msgByteArray = jsonMessage.toBytes();
         checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
 
@@ -199,12 +200,14 @@ class WSClient {
 public class Client {
 
     private ClientServices clientService = new ();
-    private JRPCClientMethods jclmethods;
+    private JRPCClientMethods jclmethods = new();
+    private JRPCClientMethods[] array;
+    private typedesc tdesc;
     private string remoteHost;
     private int remotePort;
     private string path;
 
-    public function init(types:TCPConfig|types:UDPConfig|types:WSConfig clientProtocolConfig, JRPCClientMethods jclm) {
+    public function init(types:TCPConfig|types:UDPConfig|types:WSConfig clientProtocolConfig, JRPCClientMethods[] jclm) {
 
         if clientProtocolConfig is types:TCPConfig {
             io:println("TCP");
@@ -225,16 +228,28 @@ public class Client {
             self.remoteHost = clientProtocolConfig.wsRemoteHost;
             self.remotePort = clientProtocolConfig.wsRemotePort;
             self.path = clientProtocolConfig.path;
-            WSClient wsClient = new(self.remoteHost, self.remotePort, self.path);
+            WSClient wsClient = new (self.remoteHost, self.remotePort, self.path);
             self.clientService = wsClient;
         }
 
-        jclm.clientService = self.clientService;
-        self.jclmethods = jclm;
+        foreach JRPCClientMethods item in jclm {
+            item.clientService = self.clientService;
+        }
+
+        self.array = jclm;
     }
 
-    public function ops() returns JRPCClientMethods {
-        return self.jclmethods;
+    public function ops(typedesc t) returns JRPCClientMethods|error {
+        
+        foreach var item in self.array {
+            self.tdesc = t;
+            if((typeof item).toString() === self.tdesc.toString()){
+                self.jclmethods = item;
+                return self.jclmethods;
+            }
+        }
+
+        return error(self.tdesc.toString()+" method is not initialized");
     }
 
     public function getClientService() returns ClientServices {

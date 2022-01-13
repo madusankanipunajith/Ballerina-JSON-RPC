@@ -3,6 +3,7 @@ import json_rpc.'types;
 import json_rpc.util;
 
 type BatchResponse 'types:JsonRPCTypes?[];
+
 # User Input parameters  
 public type Input 'types:InputFunc|anydata[];
 
@@ -13,6 +14,7 @@ public class JRPCMethods {
     public isolated function getMethods() returns types:Methods{
         return {};
     }
+
 }
 
 public class JRPCService {
@@ -33,38 +35,6 @@ public class Server {
 
     public isolated function init(JRPCSA services) {
         self.jrpcsa = services;
-    }
-
-    public isolated function runner(string message) returns 'types:JsonRPCTypes|BatchResponse|null {
-        'types:Identy identity = caller:requestIdentifier(message);
-
-        if identity is 'types:Error {
-            return identity;
-        }
-
-        if identity is map<json> {
-            if caller:checker(identity) is 'types:Request {
-                return self.executeSingleJsonRequest(<'types:Request>caller:checker(identity));
-            }
-
-            if caller:checker(identity) is 'types:Error {
-                return <'types:Error>caller:checker(identity);
-            }
-
-            if caller:checker(identity) is 'types:Notification {
-                return self.executeSingleJsonNotification(<'types:Notification>caller:checker(identity));
-            }
-
-            if caller:checker(identity) is null {
-                return null;
-            }
-        }
-
-        if identity is json[] {
-            return self.executeBatchJson(identity);
-        }
-
-        return util:serverError();
     }
 
     private isolated function methodFilter('types:Request|'types:Notification result) returns 'types:Method|error {
@@ -95,6 +65,7 @@ public class Server {
             return error("service is not initialized");
         }
 
+        //'types:Methods allMethodss = self.jservice.methods.getMethods();
         'types:Method|error selectedMethod = trap allMethods.get(methodName);
 
         if selectedMethod is error {
@@ -142,4 +113,35 @@ public class Server {
         return batch_res_array;
     }
 
+    public isolated function runner(string message) returns 'types:JsonRPCTypes|BatchResponse|null {
+        'types:Identy identity = caller:requestIdentifier(message);
+
+        if identity is 'types:Error {
+            return identity;
+        }
+
+        if identity is map<json> {
+            if caller:checker(identity) is 'types:Request {
+                return self.executeSingleJsonRequest(<'types:Request>caller:checker(identity));
+            }
+
+            if caller:checker(identity) is 'types:Error {
+                return <'types:Error>caller:checker(identity);
+            }
+
+            if caller:checker(identity) is 'types:Notification {
+                return self.executeSingleJsonNotification(<'types:Notification>caller:checker(identity));
+            }
+
+            if caller:checker(identity) is null {
+                return null;
+            }
+        }
+
+        if identity is json[] {
+            return self.executeBatchJson(identity);
+        }
+
+        return util:serverError();
+    }
 }
