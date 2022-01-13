@@ -37,6 +37,38 @@ public class Server {
         self.jrpcsa = services;
     }
 
+    public isolated function runner(string message) returns 'types:JsonRPCTypes|BatchResponse|null {
+        'types:Identy identity = caller:requestIdentifier(message);
+
+        if identity is 'types:Error {
+            return identity;
+        }
+
+        if identity is map<json> {
+            if caller:checker(identity) is 'types:Request {
+                return self.executeSingleJsonRequest(<'types:Request>caller:checker(identity));
+            }
+
+            if caller:checker(identity) is 'types:Error {
+                return <'types:Error>caller:checker(identity);
+            }
+
+            if caller:checker(identity) is 'types:Notification {
+                return self.executeSingleJsonNotification(<'types:Notification>caller:checker(identity));
+            }
+
+            if caller:checker(identity) is null {
+                return null;
+            }
+        }
+
+        if identity is json[] {
+            return self.executeBatchJson(identity);
+        }
+
+        return util:serverError();
+    }
+
     private isolated function methodFilter('types:Request|'types:Notification result) returns 'types:Method|error {
         string method = result.method;
         'types:Methods allMethods = {};
@@ -111,37 +143,5 @@ public class Server {
             }
         }
         return batch_res_array;
-    }
-
-    public isolated function runner(string message) returns 'types:JsonRPCTypes|BatchResponse|null {
-        'types:Identy identity = caller:requestIdentifier(message);
-
-        if identity is 'types:Error {
-            return identity;
-        }
-
-        if identity is map<json> {
-            if caller:checker(identity) is 'types:Request {
-                return self.executeSingleJsonRequest(<'types:Request>caller:checker(identity));
-            }
-
-            if caller:checker(identity) is 'types:Error {
-                return <'types:Error>caller:checker(identity);
-            }
-
-            if caller:checker(identity) is 'types:Notification {
-                return self.executeSingleJsonNotification(<'types:Notification>caller:checker(identity));
-            }
-
-            if caller:checker(identity) is null {
-                return null;
-            }
-        }
-
-        if identity is json[] {
-            return self.executeBatchJson(identity);
-        }
-
-        return util:serverError();
     }
 }

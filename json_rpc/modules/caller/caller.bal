@@ -1,6 +1,8 @@
 import json_rpc.'types;
 import json_rpc.util;
 
+const SUCCESS = "success";
+
 # Description
 #
 # + request - Parameter Description  
@@ -18,7 +20,7 @@ public isolated function executor('types:Request|'types:Notification request, is
 
         any _ = check abstractFunction(fetchedParameters);
         if request is 'types:Request {
-            return util:responseObject(request.id, "success");
+            return util:responseObject(request.id, SUCCESS);
         } else {
             return null;
         }
@@ -32,7 +34,7 @@ public isolated function executor('types:Request|'types:Notification request, is
 
     any res = check abstractFunction(fetchedParameters);
     if res is null {
-        res = "success";
+        res = SUCCESS;
     }
 
     if request is 'types:Request {
