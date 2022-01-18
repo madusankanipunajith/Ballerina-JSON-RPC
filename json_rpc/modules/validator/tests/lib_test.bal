@@ -47,7 +47,7 @@ function testJsonNotification() {
 @test:Config{}
 function testJsonError() {
     string str3 = "{\"jsonrpc\":\"2.0\",\"method\":\"display\",\"params\":{\"number\":89, \"street\":\"main street\", \"town\":\"Colombo\"}, \"s\":\"10\"}";
-    string str5 = "{\"jsonrpc\": \"2.0\", \"error\": {\"code\": -32601, \"message\": \"Method not found\"}, \"id\":23}";
+    string str5 = "{\"jsonrpc\": \"2.0\", \"err\": {\"code\": -32601, \"message\": \"Method not found\"}, \"id\":23}";
     json jsn = checkpanic value:fromJsonString(str3);
     json jsn2 = checkpanic value:fromJsonString(str5);
     'types:JsonRPCTypes|error messageValidatorResult = messageValidator(jsn);
@@ -67,17 +67,18 @@ function testJsonError() {
     test:assertTrue(result2, msg = "AssertTrue failed");
 }
 
-// @test:Config{}
-// function testPanicError() {
-//     string str2 = "{\"id\":10,\"result\":\"this is the result came from server\",\"jsonrpc\":\"2.0\"";
-     
-//     JsonRPCTypes|error messageValidatorResult = trap messageValidator(str2.toJson());
+@test:Config{}
+function testInvalidRequest() {
+    string str = "{\"id\":10,\"result\":\"this is the result came from server\",\"params\": 100,\"jsonrpc\":\"2.0\"}";
+    json jsn = checkpanic value:fromJsonString(str);
+    'types:JsonRPCTypes|error messageValidatorResult = messageValidator(jsn);
 
-//     boolean result = false;
-//     if messageValidatorResult is error{
-//         result = true;
-//     }
+    boolean result = false;
+    
+    if messageValidatorResult is 'types:Error{
+        result = true;
+    }
 
-//     test:assertTrue(result, msg = "AssertTrue failed");    
+    test:assertTrue(result, msg = "AssertTrue failed");
 
-// }
+}
