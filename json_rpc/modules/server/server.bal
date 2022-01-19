@@ -129,17 +129,24 @@ public class Server {
         BatchResponse batch_res_array = [];
 
         foreach var item in message {
-            if caller:checker(item) is 'types:Request {
-                batch_res_array.push(self.executeSingleJsonRequest(<'types:Request>caller:checker(item)));
+            
+            lock {
+                if caller:checker(item) is 'types:Request {
+                    batch_res_array.push(self.executeSingleJsonRequest(<'types:Request>caller:checker(item)));
+                }
             }
 
-            if caller:checker(item) is 'types:Notification {
-                // discarding the output of the executor
-                null _ = self.executeSingleJsonNotification(<'types:Notification>caller:checker(item));
-            }
+            lock {
+                if caller:checker(item) is 'types:Notification {
+                    // discarding the output of the executor
+                    null _ = self.executeSingleJsonNotification(<'types:Notification>caller:checker(item));
+                }
+            }   
 
-            if caller:checker(item) is 'types:Error {
-                batch_res_array.push(caller:checker(item));
+            lock {
+                if caller:checker(item) is 'types:Error {
+                    batch_res_array.push(caller:checker(item));
+                }
             }
         }
         return batch_res_array;
