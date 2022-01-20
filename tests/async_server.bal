@@ -12,6 +12,7 @@ service on new tcp:Listener(3000) {
 
 service class EchoService {
     *tcp:ConnectionService;
+
     remote function onBytes(tcp:Caller caller, readonly & byte[] data) 
         returns tcp:Error? {
         io:println("Echo: ", string:fromBytes(data));
