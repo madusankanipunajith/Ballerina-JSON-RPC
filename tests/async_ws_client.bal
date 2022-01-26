@@ -3,21 +3,19 @@ import ballerina/lang.'string;
 import ballerina/websocket;
 
 public function main() returns error? {
-    websocket:Client wsClient = check new ("ws://localhost:3000");
-
-    worker B {
-        io:println("B");
-        sendMessage(wsClient, "madusanka", function(string s) returns () {
-            io:println(s);
+   
+        websocket:Client wsClient = checkpanic new ("ws://localhost:3000");
+        
+        future<()> futureResult = start sendMessage(wsClient, "madusanka", function(string s) returns () {
+            io:println("to B : ",s);
         });
-    }
+        
 
-    worker A {
-        io:println("A");
-        sendMessage(wsClient, "nipunajith", function(string s) returns () {
-            io:println(s);
+        future<()> futureResult2 = start sendMessage(wsClient, "nipunajith", function(string s) returns () {
+            io:println("to A : ",s);
         });
-    }
+    
+        map<error?|error?> _ = wait {futureResult,futureResult2};
 }
 
 function sendMessage(websocket:Client cl, string message, function (string reply) callback) {
@@ -26,9 +24,10 @@ function sendMessage(websocket:Client cl, string message, function (string reply
     byte[] msgByteArray = msg.toBytes();
     checkpanic cl->writeBinaryMessage(msgByteArray); 
 
-    // waiting for the reply
-    future<byte[]|websocket:Error> listResult = @strand {thread: "any"} start cl->readBinaryMessage();
+    //waiting for the reply
+    future<byte[]|websocket:Error> listResult = start cl->readBinaryMessage();
     byte[]|websocket:Error response = wait listResult;
+
 
     if !(response is websocket:Error) {
         string reply = checkpanic string:fromBytes(response);
