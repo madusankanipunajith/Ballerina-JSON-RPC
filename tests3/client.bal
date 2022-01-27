@@ -18,23 +18,28 @@ public function main() returns error? {
             future<byte[]|websocket:Error> listResult = start wsClient->readBinaryMessage();
             byte[]|websocket:Error response = wait listResult;
 
-            if !(response is websocket:Error) {
-                string reply = checkpanic string:fromBytes(response);
-                io:println(reply);
-                name.push(reply);
+            lock {
+                if !(response is websocket:Error) {
+                    string reply = checkpanic string:fromBytes(response);
+                    io:println(reply);
+                    name.push(reply);
+                }
             }
         }
     }
 
     sendMessage(wsClient, msg_1, function(string s) returns () {
+        io:println("first function");
         io:println("Madusanka : ", s);
     });
 
     sendMessage(wsClient, msg_2, function(string s) returns () {
+        io:println("second function");
         io:println("Nipunajith : ", s);
     });
 
     sendMessage(wsClient, msg_3, function(string s) returns () {
+        io:println("third function");
         io:println("Dulaj : ", s);
     });
 
@@ -49,20 +54,22 @@ function sendMessage(websocket:Client cl, string message, function (string reply
     worker B {
         future<string> futureResult = start find(name, message);
         string unionResult = checkpanic wait futureResult;
-        callback("recieved : " +  unionResult);
+        callback("recieved : " + unionResult);
     }
-
 
 }
 
 function find(string[] messages, string request) returns string {
     while true {
         runtime:sleep(0.01);
-        foreach string item in messages {
-            if item === request {
-                return item;
+        lock {
+            foreach string item in messages {
+                if item === request {
+                    return item;
+                }
             }
         }
+
     }
 }
 
