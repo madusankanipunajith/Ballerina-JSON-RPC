@@ -9,17 +9,17 @@ public function main() {
     string msg_2 = "Nipunajith";
     string msg_3 = "Dulaj";
 
-    // wsClient.sendMessage(msg_1, function (string s) returns () {
-    //     io:println("Madusanka : ", s);
-    // });
+    wsClient.sendMessage(msg_1, function (string s) returns () {
+        io:println("Madusanka : ", s);
+    });
 
-    // wsClient.sendMessage(msg_2,function (string s) returns () {
-    //     io:println("Nipunajith : ", s);
-    // });
+    wsClient.sendMessage(msg_2,function (string s) returns () {
+        io:println("Nipunajith : ", s);
+    });
 
-    // wsClient.sendMessage(msg_3,function (string s) returns () {
-    //     io:println("Dulaj : ", s);
-    // });
+    wsClient.sendMessage(msg_3,function (string s) returns () {
+        io:println("Dulaj : ", s);
+    });
 
 }
 
