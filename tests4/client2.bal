@@ -4,7 +4,7 @@ import ballerina/lang.runtime;
 
 string msg_1 = "Madusanka";
 string msg_2 = "Nipunajith";
-string msg_3 = "Dulaj";
+string msg_3 = "Dilshan";
 
 public function main() {
     WSClient wsClient = new ("ws://localhost:3000");
@@ -21,26 +21,11 @@ public function main() {
     });
 
     user.func_1(msg_3, function(string s) returns () {
-        io:println("Dulaj : ", s);
+        io:println("Dilshan : ", s);
     });
 
 }
 
-string[] name = [];
-
-public class ClientService {
-    public function sendMessage(string message, function (string s) callback) {
-        return;
-    }
-
-    public function sendNotification(string message) {
-        return;
-    }
-
-    public function closeClient() {
-        return;
-    }
-}
 
 // method wrapper
 public class User {
@@ -67,6 +52,31 @@ public class User {
     }
 }
 
+
+
+
+
+
+
+
+// library 
+
+string[] name = [];
+
+public class ClientService {
+    public function sendMessage(string message, function (string s) callback) {
+        return;
+    }
+
+    public function sendNotification(string message) {
+        return;
+    }
+
+    public function closeClient() {
+        return;
+    }
+}
+
 public class WSClient {
     *ClientService;
 
@@ -86,7 +96,6 @@ public class WSClient {
                 lock {
                     if !(response is websocket:Error) {
                         string reply = checkpanic string:fromBytes(response);
-                        //io:println(reply);
                         name.push(reply);
                     }
                 }
@@ -99,8 +108,10 @@ public class WSClient {
         byte[] msgByteArray = msg.toBytes();
         checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
 
+        //rec = id , res  
+
         worker B {
-            future<string> futureResult = start self.find(name, message);
+            future<string> futureResult = start self.find(message);
             string unionResult = checkpanic wait futureResult;
             callback("recieved : " + unionResult);
         }
@@ -116,11 +127,11 @@ public class WSClient {
         return;
     }
 
-    private function find(string[] messages, string request) returns string {
+    private function find(string request) returns string {
         while true {
             runtime:sleep(0.01);
             lock {
-                foreach string item in messages {
+                foreach string item in name {
                     if item === request {
                         return item;
                     }

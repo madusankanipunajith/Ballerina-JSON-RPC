@@ -2,26 +2,30 @@ import ballerina/websocket;
 import ballerina/io;
 import ballerina/lang.runtime;
 
-public function main() {
-    WSClient wsClient = new("ws://localhost:3000");
-    wsClient.register();
-    string msg_1 = "Madusanka";
-    string msg_2 = "Nipunajith";
-    string msg_3 = "Dulaj";
+string msg_1 = "Madusanka";
+string msg_2 = "Nipunajith";
+string msg_3 = "Dilshan";
 
-    wsClient.sendMessage(msg_1, function (string s) returns () {
+public function main() {
+    WSClient wsClient = new ("ws://localhost:3000");
+    wsClient.register();
+
+    wsClient.sendMessage(msg_1, function(string s) returns () {
         io:println("Madusanka : ", s);
     });
 
-    wsClient.sendMessage(msg_2,function (string s) returns () {
+    wsClient.sendMessage(msg_2, function(string s) returns () {
         io:println("Nipunajith : ", s);
     });
 
-    wsClient.sendMessage(msg_3,function (string s) returns () {
-        io:println("Dulaj : ", s);
+    wsClient.sendMessage(msg_3, function(string s) returns () {
+        io:println("Dilshan : ", s);
     });
 
 }
+
+
+// library 
 
 string[] name = [];
 
@@ -38,7 +42,7 @@ public class ClientService {
 public class WSClient {
     *ClientService;
 
-    websocket:Client wsClient;
+    private websocket:Client wsClient;
 
     public function init(string url) {
         self.wsClient = checkpanic new (url);
