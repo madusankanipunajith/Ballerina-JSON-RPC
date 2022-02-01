@@ -7,7 +7,7 @@ import ballerina/io;
 # + message - Parameter Description
 # + return - Return Value Description  
 public isolated function messageValidator(json message) returns 'types:JsonRPCTypes {
-    'types:JsonRecord|error jmessage = message.cloneWithType();
+    'types:JsonRecord|error jmessage = trap message.cloneWithType();
 
     if jmessage is error {
         //return error("something went wrong in message conversion");
