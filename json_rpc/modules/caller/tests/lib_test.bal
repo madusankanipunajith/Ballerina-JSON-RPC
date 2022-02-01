@@ -30,6 +30,7 @@ string str60 = "{\"jsonrpc\":\"2.0\",\"method\":\"add\",\"params\":100,\"id\":10
 
 string str7 = "{\"id\":10,\"result\":189,\"jsonrpc\":\"2.0\"}";
 string str8 = "{\"jsonrpc\":\"2.0\",\"method\":\"add\",\"params\":100}";
+string str9 = "[1]";
 
 
 types:Error res1 ={
@@ -150,8 +151,26 @@ public function callerExecuteFunction(){
     test:assertEquals(executorResult, res5, msg = "Testing has been failed");
 }
 
+@test:Config{}
+public function testInvalidRequestInsideArray() {
+    types:Identy requestIdentifierResult = requestIdentifier(str9);
+    boolean result = false;
 
+    if requestIdentifierResult is json[]{
+        result = true;
+    }
+    test:assertTrue(result, msg = "Testing has been failed");
+}
 
+@test:Config{}
+public function testCheckerInvalidRequest() {
+    boolean result = false;
+    types:Error|types:Request|types:Notification|null checkerResult = checker(1);
+    if checkerResult is types:Error{
+        result = true;
+    }
+    test:assertTrue(result, msg = "Testing has been failed");
+}
 
 
 

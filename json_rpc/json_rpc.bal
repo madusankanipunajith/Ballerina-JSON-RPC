@@ -1,65 +1,74 @@
-import json_rpc.'types;
 import json_rpc.'client;
 import ballerina/io;
+import json_rpc.types;
 
-public function main() returns error? {
+public function main() {
+    'client:WSClient wsClient = new("ws://localhost:3000");
+    wsClient.register();
 
-    'types:TCPConfig tcpConfig={
-       tcpRemoteHost: "localhost",
-       tcpRemotePort: 9000
-    };
+    wsClient.sendRequest("add", {"x":100, "y": 80}, function (types:Response|types:Error u) returns () {
+        io:println("1 : ", u);
+    });
 
-    'client:Client cl = new (tcpConfig, new CalculatorMethod());
-    CalculatorMethod calculatorMethod = <CalculatorMethod>cl.ops();
+    wsClient.sendRequest("sub", {"x":100, "y": 80}, function (types:Response|types:Error u) returns () {
+        io:println("2 : ", u);
+    });
+
+    wsClient.sendRequest("sub", 100, function (types:Response|types:Error u) returns () {
+        io:println("3 : ", u);
+    });
+
+    wsClient.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+        io:println("4 : ", u);
+    });
+
+    wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+        io:println("5 : ", u);
+    });
+
+
+    wsClient.closeClient();   
     
-    calculatorMethod.addFunction(125, 100, function(types:JRPCResponse t) returns () {
-        io:println(t);
-    });
-
-    calculatorMethod.subFunction(189, {"x": 200, "y": 100}, function (types:JRPCResponse t) returns () {
-       io:println(t); 
-    });
-
-    cl.closeClient();
-
 }
 
-class CalculatorMethod {
-    *'client:JRPCClientMethods;
 
-    function init() {
-        self.clientService = new();
+
+
+
+
+
+
+
+
+// public function main() {
+//     CalculatorClient calc = new("ws://localhost:3000");
+//     calc.starts();
+
+//     calc.add("add", {"x":100, "y": 80}, function (types:Response|types:Error u) returns () {
+//         io:println(u);
+//     });
+
+//     calc.close();
+// }
+
+class CalculatorClient {
+    private 'client:WSClient wsClient;
+
+    public function init(string path) {
+        self.wsClient = new(path);
     }
 
-    public function addFunction(int id, json params, function ('types:JRPCResponse response) callback) {
-        'types:Request r = {
-            id: id,
-            params: params,
-            method: "add"
-        };
-
-        types:JRPCResponse sendMessage = self.clientService.sendMessage(r);
-        callback(sendMessage);
+    public function starts() {
+        self.wsClient.register();
     }
 
-    public function subFunction(int id, json params, function ('types:JRPCResponse response) callback) {
-        'types:Request r = {
-            id: id,
-            params: params,
-            method: "sub"
-        };
-
-        types:JRPCResponse sendMessage = self.clientService.sendMessage(r);
-        callback(sendMessage);
+    public function close() {
+        self.wsClient.closeClient();
     }
 
-    public function notFunction(json params) {
-        'types:Notification n = {
-            params: params,
-            method: "mult"
-        };
-
-        self.clientService.sendNotification(n);
+    public function add(string method, anydata params, function (types:Response|types:Error out) response) {
+        self.wsClient.sendRequest(method,params,function (types:Response|types:Error u) returns () {
+           response(u); 
+        });
     }
 }
-
