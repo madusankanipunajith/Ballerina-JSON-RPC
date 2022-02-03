@@ -1,7 +1,6 @@
 import json_rpc.types;
 import ballerina/lang.value;
 import json_rpc.validator;
-import ballerina/lang.runtime;
 import ballerina/time;
 import ballerina/log;
 import ballerina/tcp;
@@ -245,12 +244,14 @@ public class WSClient {
     }
 
     public function closeClient() {
-
         worker C {
-            runtime:sleep(4);
-            log:printInfo(self.store.responseBatchStore.length().toString());
-            log:printInfo(self.store.requestStore.length().toString());
-            log:printInfo(self.store.responseStore.length().toString());
+            while true {
+                util:nap();
+                if self.store.requestStore.length() === 0 {
+                    any _ = checkpanic self.wsClient->close();
+                    log:printInfo("client has been closed succesfully");
+                }
+            }
         }
     }
 
@@ -398,6 +399,7 @@ public class TCPClient {
 
     public function closeClient() {
         checkpanic self.tcpClient->close();
+        log:printInfo("client has been closed succesfully");
     }
 
     public function sendNotification(string method, anydata params) {
