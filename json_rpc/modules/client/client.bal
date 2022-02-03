@@ -5,6 +5,7 @@ import ballerina/lang.runtime;
 import ballerina/time;
 import ballerina/log;
 import ballerina/tcp;
+import json_rpc.util;
 import ballerina/websocket;
 
 public type BatchInput record {|
@@ -131,15 +132,27 @@ class Store {
         self.requestStore.push(request);
     }
 
-    public function removeRequest(int id) returns types:Request {
+    public function removeRequest(int|int[] id) returns types:Request|() {
         int index = 0;
-        foreach int i in 0 ..< self.requestStore.length() {
-            if self.requestStore[i].id === id {
-                index = i;
+        if id is int[] {
+            foreach int item in id {
+                foreach int i in 0 ..< self.requestStore.length() {
+                    if self.requestStore[i].id === item {
+                        index = i;
+                        _ = self.requestStore.remove(index);
+                    }
+                }
             }
-        }
+            return ();
+        } else {
+            foreach int i in 0 ..< self.requestStore.length() {
+                if self.requestStore[i].id === id {
+                    index = i;
+                }
+            }
 
-        return self.requestStore.remove(index);
+            return self.requestStore.remove(index);
+        }
     }
 
     public function removeResponse(int|int[] id) {
@@ -236,6 +249,8 @@ public class WSClient {
         worker C {
             runtime:sleep(4);
             log:printInfo(self.store.responseBatchStore.length().toString());
+            log:printInfo(self.store.requestStore.length().toString());
+            log:printInfo(self.store.responseStore.length().toString());
         }
     }
 
@@ -307,11 +322,12 @@ public class WSClient {
         int end = strats + 20;
         while (strats < end) {
             strats = time:utcNow()[0];
-            runtime:sleep(0.01);
+            util:nap();
             lock {
                 SingleJRPCOutput[] responseStore = self.store.getResponseStore();
                 foreach types:Response|types:Error item in responseStore {
                     if item.id === id {
+                        _ = self.store.removeRequest(id);
                         return item;
                     }
                 }
@@ -334,7 +350,7 @@ public class WSClient {
         int end = strats + 20;
         while (strats < end) {
             strats = time:utcNow()[0];
-            runtime:sleep(0.01);
+            util:nap();
             lock {
                 BatchJRPCOutput[] batchStore = self.store.getBatchStore();
                 foreach BatchJRPCOutput item in batchStore {
@@ -342,6 +358,7 @@ public class WSClient {
                         foreach types:JsonRPCTypes? j in item {
                             if j is types:Response || j is types:Error {
                                 if j.id === i {
+                                    _ = self.store.removeRequest(id);
                                     return item;
                                 }
                             }
@@ -428,6 +445,15 @@ public class TCPClient {
         }
     }
 }
+
+
+
+
+
+
+
+
+
 
 // class UDPClient {
 //     *ClientServices;
