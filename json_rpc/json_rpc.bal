@@ -18,17 +18,58 @@ public function main() {
         io:println("3 : ", u);
     });
 
-    wsClient.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+
+    wsClient.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
         io:println("4 : ", u);
     });
     
     wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
         io:println("5 : ", u);
     });
+
+    wsClient.sendRequestBatch([{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+        io:println("6 : ", u);
+    });
+    
+    wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+        io:println("7 : ", u);
+    });
+
+    wsClient.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+        io:println("8 : ", u);
+    });
+    
+    wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+        io:println("9 : ", u);
+    });
     
     // wsClient.sendRequestBatch([],function ('client:BatchJRPCOutput|types:Error u) returns () {
     //     io:println("6 : ", u);
     // });
+
+    wsClient.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+        io:println("10 : ", u);
+    });
+    
+    wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+        io:println("11 : ", u);
+    });
+
+    wsClient.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+        io:println("12 : ", u);
+    });
+    
+    wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+        io:println("13 : ", u);
+    });
+
+    wsClient.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+        io:println("14 : ", u);
+    });
+    
+    wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+        io:println("15 : ", u);
+    });
 
     wsClient.closeClient();   
     

@@ -40,43 +40,15 @@ function fetchResponse(string response) returns types:JRPCResponse {
     }
 }
 
-function createRequest(int id, string method, anydata params) returns types:Request {
-    types:Request request = {
-        id: id,
-        method: method,
-        params: params
-    };
-
-    return request;
-}
-
-function createNotification(string method, anydata params) returns types:Notification {
-    types:Notification notification = {
-        method: method,
-        params: params
-    };
-
-    return notification;
-}
-
 function createBatchRequest(BatchInput[] batch, Store store) returns types:JsonRPCTypes[] {
     types:JsonRPCTypes[] request = [];
 
     foreach BatchInput item in batch {
         if item.notification {
-            types:Notification notific = {
-                    params: item.params,
-                    method: item.method
-                };
-            request.push(notific);
+            request.push(util:sendNotification(item.method,item.params));
         } else {
             int id = store.genarateId();
-            types:Request req = {
-                id: id,
-                params: item.params,
-                method: item.method
-            };
-            request.push(req);
+            request.push(util:sendRequest(id,item.method,item.params));
         }
     }
 
@@ -86,11 +58,7 @@ function createBatchRequest(BatchInput[] batch, Store store) returns types:JsonR
 function createBatchNotification(BatchInput[] batch) returns types:JsonRPCTypes[] {
     types:JsonRPCTypes[] notification = [];
     foreach BatchInput item in batch {
-        types:Notification notific = {
-            method: item.method,
-            params: item.params
-        };
-        notification.push(notific);
+        notification.push(util:sendNotification(item.method,item.params));
     }
 
     return notification;
@@ -108,49 +76,65 @@ class Store {
     }
 
     public function getResponseStore() returns SingleJRPCOutput[] {
-        return self.responseStore;
+        lock {
+            return self.responseStore;
+        }
     }
 
     public function getRequestStore() returns types:Request[] {
-        return self.requestStore;
+        lock {
+            return self.requestStore;
+        }
     }
 
     public function getBatchStore() returns BatchJRPCOutput[] {
-        return self.responseBatchStore;
+        lock {
+            return self.responseBatchStore;
+        }
     }
 
     public function pushResponse(SingleJRPCOutput response) {
-        self.responseStore.push(response);
+        lock {
+            self.responseStore.push(response);
+        }
     }
 
     public function pushBatch(BatchJRPCOutput response) {
-        self.responseBatchStore.push(response);
+        lock {
+            self.responseBatchStore.push(response);
+        }
     }
 
     public function pushRequest(types:Request request) {
-        self.requestStore.push(request);
+        lock {
+            self.requestStore.push(request);
+        }
     }
 
     public function removeRequest(int|int[] id) returns types:Request|() {
         int index = 0;
         if id is int[] {
             foreach int item in id {
-                foreach int i in 0 ..< self.requestStore.length() {
-                    if self.requestStore[i].id === item {
-                        index = i;
-                        _ = self.requestStore.remove(index);
+                lock {
+                    foreach int i in 0 ..< self.requestStore.length() {
+                        if self.requestStore[i].id === item {
+                            index = i;
+                            _ = self.requestStore.remove(index);
+                        }
                     }
                 }
             }
             return ();
         } else {
-            foreach int i in 0 ..< self.requestStore.length() {
-                if self.requestStore[i].id === id {
-                    index = i;
+            lock {
+                foreach int i in 0 ..< self.requestStore.length() {
+                    if self.requestStore[i].id === id {
+                        index = i;
+                    }
                 }
-            }
 
-            return self.requestStore.remove(index);
+                return self.requestStore.remove(index);
+            }
         }
     }
 
@@ -158,27 +142,31 @@ class Store {
         int index = 0;
         if id is int[] {
             foreach int i in id {
-                foreach int ind in 0 ..< self.responseBatchStore.length() {
-                    BatchJRPCOutput batchJRPCOutput = self.responseBatchStore[ind];
-                    foreach var item in batchJRPCOutput {
-                        if item is types:Response || item is types:Error {
-                            if item.id === i {
-                                index = ind;
-                                _ = self.responseBatchStore.remove(index);
-                                return;
+                lock {
+                    foreach int ind in 0 ..< self.responseBatchStore.length() {
+                        BatchJRPCOutput batchJRPCOutput = self.responseBatchStore[ind];
+                        foreach var item in batchJRPCOutput {
+                            if item is types:Response || item is types:Error {
+                                if item.id === i {
+                                    index = ind;
+                                    _ = self.responseBatchStore.remove(index);
+                                    return;
+                                }
                             }
                         }
                     }
                 }
             }
         } else {
-            foreach int i in 0 ..< self.responseStore.length() {
-                if self.responseStore[i].id === id {
-                    index = i;
-                    break;
+            lock {
+                foreach int i in 0 ..< self.responseStore.length() {
+                    if self.responseStore[i].id === id {
+                        index = i;
+                        break;
+                    }
                 }
+                _ = self.responseStore.remove(index);
             }
-            _ = self.responseStore.remove(index);
         }
     }
 }
@@ -221,7 +209,6 @@ public class WSClient {
             while true {
                 future<byte[]|websocket:Error> futureResult = start self.wsClient->readBinaryMessage();
                 byte[]|websocket:Error response = wait futureResult;
-
                 lock {
                     if !(response is websocket:Error) {
                         string reply = checkpanic string:fromBytes(response);
@@ -244,19 +231,26 @@ public class WSClient {
     }
 
     public function closeClient() {
-        worker C {
-            while true {
-                util:nap();
+        log:printInfo("Total : "+self.store.requestStore.length().toJsonString());
+        while true {
+            util:nap();
+            lock {
                 if self.store.requestStore.length() === 0 {
-                    any _ = checkpanic self.wsClient->close();
-                    log:printInfo("client has been closed succesfully");
+                    log:printInfo("Client has been disconnected from the server");
+                    break;
+                    // websocket:Error? close = self.wsClient->close();
+                    // if !(close is websocket:Error) {
+                    //     log:printInfo(self.store.requestStore.length().toJsonString());
+                    //     break;
+                    // }
                 }
             }
         }
+
     }
 
     public function sendNotification(string method, anydata params) {
-        string jsonMessage = createNotification(method, params).toJsonString();
+        string jsonMessage = util:sendNotification(method, params).toJsonString();
         byte[] msgByteArray = jsonMessage.toBytes();
         checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
     }
@@ -269,8 +263,8 @@ public class WSClient {
 
     public function sendRequest(string method, anydata params, function (types:Response|types:Error response) returns () callback) {
         int id = self.store.genarateId();
-        self.store.pushRequest(createRequest(id, method, params));
-        string jsonMessage = createRequest(id, method, params).toJsonString();
+        self.store.pushRequest(util:sendRequest(id, method, params));
+        string jsonMessage = util:sendRequest(id, method, params).toJsonString();
         byte[] msgByteArray = jsonMessage.toBytes();
         checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
 
@@ -279,6 +273,7 @@ public class WSClient {
             types:Error|types:Response unionResult = checkpanic wait futureResult;
             self.store.removeResponse(id);
             callback(unionResult);
+            _ = self.store.removeRequest(id);
         }
     }
 
@@ -287,18 +282,10 @@ public class WSClient {
         int[] ids = [];
         foreach BatchInput item in message {
             if item.notification {
-                types:Notification notific = {
-                    params: item.params,
-                    method: item.method
-                };
-                request.push(notific);
+                request.push(util:sendNotification(item.method,item.params));
             } else {
                 int id = self.store.genarateId();
-                types:Request req = {
-                    id: id,
-                    params: item.params,
-                    method: item.method
-                };
+                types:Request req = util:sendRequest(id,item.method,item.params);
                 ids.push(id);
                 request.push(req);
                 self.store.pushRequest(req);
@@ -314,13 +301,14 @@ public class WSClient {
             BatchJRPCOutput|types:Error unionResult = checkpanic wait futureResult;
             self.store.removeResponse(ids);
             callback(unionResult);
+            _ = self.store.removeRequest(ids);
         }
     }
 
     private function findRequest(int id) returns types:Error|types:Response {
         time:Utc currentUtc = time:utcNow();
         int strats = currentUtc[0];
-        int end = strats + 20;
+        int end = strats + 10;
         while (strats < end) {
             strats = time:utcNow()[0];
             util:nap();
@@ -328,7 +316,6 @@ public class WSClient {
                 SingleJRPCOutput[] responseStore = self.store.getResponseStore();
                 foreach types:Response|types:Error item in responseStore {
                     if item.id === id {
-                        _ = self.store.removeRequest(id);
                         return item;
                     }
                 }
@@ -348,19 +335,20 @@ public class WSClient {
     private function findBatch(int[] id) returns BatchJRPCOutput|types:Error {
         time:Utc currentUtc = time:utcNow();
         int strats = currentUtc[0];
-        int end = strats + 20;
+        int end = strats + 10;
         while (strats < end) {
             strats = time:utcNow()[0];
             util:nap();
             lock {
-                BatchJRPCOutput[] batchStore = self.store.getBatchStore();
+                BatchJRPCOutput[] batchStore = self.store.getBatchStore(); 
                 foreach BatchJRPCOutput item in batchStore {
                     foreach int i in id {
                         foreach types:JsonRPCTypes? j in item {
                             if j is types:Response || j is types:Error {
                                 if j.id === i {
-                                    _ = self.store.removeRequest(id);
-                                    return item;
+                                    lock {
+                                        return item;
+                                    }
                                 }
                             }
                         }
@@ -403,7 +391,7 @@ public class TCPClient {
     }
 
     public function sendNotification(string method, anydata params) {
-        string jsonMessage = createNotification(method, params).toJsonString();
+        string jsonMessage = util:sendNotification(method, params).toJsonString();
         byte[] msgByteArray = jsonMessage.toBytes();
         checkpanic self.tcpClient->writeBytes(msgByteArray);
     }
@@ -416,7 +404,7 @@ public class TCPClient {
 
     public function sendRequest(string method, anydata params, function (types:Response|types:Error response) returns () callback) {
         int id = self.store.genarateId();
-        string jsonMessage = createRequest(id, method, params).toJsonString();
+        string jsonMessage = util:sendRequest(id, method, params).toJsonString();
         byte[] msgByteArray = jsonMessage.toBytes();
         checkpanic self.tcpClient->writeBytes(msgByteArray);
 
@@ -447,15 +435,6 @@ public class TCPClient {
         }
     }
 }
-
-
-
-
-
-
-
-
-
 
 // class UDPClient {
 //     *ClientServices;

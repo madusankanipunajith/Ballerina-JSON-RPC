@@ -28,6 +28,6 @@ public function main() {
     
     
 
-    wsClient.closeClient();   
+    //wsClient.closeClient();   
     
 }

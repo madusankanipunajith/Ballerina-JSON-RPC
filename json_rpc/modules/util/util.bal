@@ -118,5 +118,5 @@ public isolated function sendResponse(int id, any result) returns 'types:Respons
 
 
 public isolated function nap() {
-    runtime:sleep(0.01);
+    runtime:sleep(0.1);
 }
