@@ -7,6 +7,11 @@ import ballerina/tcp;
 import json_rpc.util;
 import ballerina/websocket;
 
+const NOT_RECIEVED = "Response message hasn't been recieved.";
+const DISCONNECT = "Client has been disconnected from the server.";
+const DISCONNECT_ERROR = "Something went wrong while client is disconnecting from the server";
+const UNMATCHED_ERROR = "Unmatchable error has been recieved by server.";
+
 public type BatchInput record {|
     boolean notification = false;
     string method;
@@ -217,7 +222,7 @@ public class WSClient {
                         if fetchResponseResult is types:Response || fetchResponseResult is types:Error {
                             self.store.pushResponse(fetchResponseResult);
                             if fetchResponseResult.id === () {
-                                log:printError("Unmatchable error has been recieved by server", 'error = error(fetchResponseResult.toString()));
+                                log:printError(UNMATCHED_ERROR, 'error = error(fetchResponseResult.toString()));
                             }
                         } else if fetchResponseResult is BatchJRPCOutput {
                             self.store.pushBatch(fetchResponseResult);
@@ -236,13 +241,15 @@ public class WSClient {
             util:nap();
             lock {
                 if self.store.requestStore.length() === 0 {
-                    log:printInfo("Client has been disconnected from the server");
+                    websocket:Error? close = self.wsClient->close();
+                    if !(close is websocket:Error) {
+                        log:printInfo(DISCONNECT);
+                        break;
+                    }else {
+                        log:printInfo(DISCONNECT_ERROR);
+                    }
+
                     break;
-                    // websocket:Error? close = self.wsClient->close();
-                    // if !(close is websocket:Error) {
-                    //     log:printInfo(self.store.requestStore.length().toJsonString());
-                    //     break;
-                    // }
                 }
             }
         }
@@ -322,7 +329,7 @@ public class WSClient {
             }
         }
 
-        log:printError("Response message hasn't been recieved.", 'error = error(self.store.removeRequest(id).toString()));
+        log:printError(NOT_RECIEVED, 'error = error(self.store.removeRequest(id).toString()));
 
         types:Error e = {
             id: id,
@@ -359,10 +366,10 @@ public class WSClient {
 
         if id.length() > 0 {
             foreach int i in id {
-                log:printError("Response message hasn't been recieved.", 'error = error(self.store.removeRequest(i).toString()));
+                log:printError(NOT_RECIEVED, 'error = error(self.store.removeRequest(i).toString()));
             }
         } else {
-            log:printError("Response message hasn't been recieved.", 'error = error("requested message is empty"));
+            log:printError(NOT_RECIEVED, 'error = error("requested message is empty"));
         }
 
         types:Error e = {
@@ -386,8 +393,12 @@ public class TCPClient {
     }
 
     public function closeClient() {
-        checkpanic self.tcpClient->close();
-        log:printInfo("client has been closed succesfully");
+        tcp:Error? close = self.tcpClient->close();
+        if !(close is tcp:Error) {
+            log:printInfo(DISCONNECT);   
+        }else {
+            log:printInfo(DISCONNECT_ERROR);
+        }
     }
 
     public function sendNotification(string method, anydata params) {
