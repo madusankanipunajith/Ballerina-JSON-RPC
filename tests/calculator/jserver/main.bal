@@ -1,8 +1,7 @@
 import ballerina/io;
-import ballerina/log;
-import ballerina/tcp;
 import asus/json_rpc.server;
 import asus/json_rpc.types;
+import ballerina/websocket;
 
 type Nip record {|
     int x;
@@ -10,54 +9,87 @@ type Nip record {|
 |};
 
 type Temp record {
-  float z;
+    float z;
 };
 
+// service on new tcp:Listener(9000) {
 
+//     remote function onConnect(tcp:Caller caller) returns tcp:ConnectionService {
+//         io:println("Client connected to echo server: ", caller.remotePort);
+//         return new MainTCPService();
+//     }
+// }
 
+// service class MainTCPService {
+//     *tcp:ConnectionService;
 
-service on new tcp:Listener(9000) {
+//     remote function onBytes(tcp:Caller caller, readonly & byte[] data) returns tcp:Error? {
+//         io:println("Echo: ", string:fromBytes(data));
 
-    remote function onConnect(tcp:Caller caller) returns tcp:ConnectionService {
-        io:println("Client connected to echo server: ", caller.remotePort);
-        return new MainTCPService();
+//         // calling the library
+//         Calculator calc = new ();
+//         server:Server s1 = new ([calc]);
+//         string input = checkpanic string:fromBytes(data);
+//         any runner = s1.runner(input);
+//         io:println(runner);
+//         return caller->writeBytes(runner.toString().toBytes());
+
+//     }
+
+//     remote function onError(tcp:Error err) {
+//         log:printError("An error occurred", 'error = err);
+//     }
+
+//     remote function onClose() {
+//         io:println("Client left");
+//     }
+// }
+
+service / on new websocket:Listener(3000) {
+    resource isolated function get .() returns websocket:Service|websocket:Error {
+        return new WsService();
     }
 }
 
-service class MainTCPService {
-    *tcp:ConnectionService;
-    
-    remote function onBytes(tcp:Caller caller, readonly & byte[] data) returns tcp:Error? {
-        io:println("Echo: ", string:fromBytes(data));
+service class WsService {
+    *websocket:Service;
 
-        // calling the library
-        Calculator calc = new();
-        server:Server s1 = new([calc]);
-        string input = checkpanic string:fromBytes(data); 
-        any runner = s1.runner(input);io:println(runner);
+    remote function onBinaryMessage(websocket:Caller caller, byte[] data) returns websocket:Error? {
+        io:println("\nmessage: ", string:fromBytes(data));string input = checkpanic string:fromBytes(data);
 
-        return caller->writeBytes(runner.toString().toBytes());
+        //calling the library
+        CTServer calculatorServer = new();
+        io:println("output: ", calculatorServer.sendResponse(input));
+        return caller->writeBinaryMessage(calculatorServer.sendResponse(input).toString().toBytes());
     }
 
-    remote function onError(tcp:Error err) {
-        log:printError("An error occurred", 'error = err);
-    }
-
-    remote function onClose() {
-        io:println("Client left");
+    remote function onClose(websocket:Caller caller, int statusCode, string reason) {
+        io:println(string `Client closed connection with ${statusCode} because of ${reason}`);
     }
 }
 
 
 
+// use case of the server
 
+class CTServer {
 
-class Calculator{
-  *server:JRPCService;
+    server:Server serv;
+    function init() {
+        self.serv = new([new Calculator()]);
+    }
+
+    public isolated function sendResponse(string request) returns any{
+        return self.serv.runner(request);
+    }
+}
+
+class Calculator {
+    *server:JRPCService;
 
     function init() {
-      CalcMethods cmethods = new();
-      self.methods = cmethods;
+        CalcMethods cmethods = new ();
+        self.methods = cmethods;
     }
 
     public isolated function name() returns string|error {
@@ -67,37 +99,36 @@ class Calculator{
 }
 
 isolated class CalcMethods {
-  *server:JRPCMethods;
+    *server:JRPCMethods;
 
-    isolated function addFunction(server:Input ifs) returns int|error{
-      Nip nip = check ifs.cloneWithType();
-      return nip.x + nip.y;
+    isolated function addFunction(server:Input ifs) returns int|error {
+        Nip nip = check ifs.cloneWithType();
+        return nip.x + nip.y;
     }
 
-    isolated function subFunction(server:Input ifs) returns int|error{
-      Nip nip = check ifs.cloneWithType();
-      return nip.x - nip.y;
+    isolated function subFunction(server:Input ifs) returns int|error {
+        Nip nip = check ifs.cloneWithType();
+        return nip.x - nip.y;
     }
-    
-    public isolated function getMethods() returns 'types:Methods{
 
-        'types:Methods meth={
-          "add": self.addFunction,
-          "sub": self.subFunction
+    public isolated function getMethods() returns 'types:Methods {
+
+        'types:Methods meth = {
+            "add": self.addFunction,
+            "sub": self.subFunction
         };
 
         return meth;
-    }    
+    }
 
 }
 
-
 class Thermometer {
-  *server:JRPCService;
+    *server:JRPCService;
 
     function init() {
-      TherMethods tmethods = new();
-      self.methods = tmethods;
+        TherMethods tmethods = new ();
+        self.methods = tmethods;
     }
 
     public isolated function name() returns string|error {
@@ -106,20 +137,20 @@ class Thermometer {
 }
 
 isolated class TherMethods {
-  *server:JRPCMethods;
+    *server:JRPCMethods;
 
-    isolated function convirtFunction(server:Input ifs) returns error|float{
-      Temp temp = check ifs.cloneWithType();
-      float ans = (temp.z*9/5) + 32;
-      return ans;
+    isolated function convirtFunction(server:Input ifs) returns error|float {
+        Temp temp = check ifs.cloneWithType();
+        float ans = (temp.z * 9 / 5) + 32;
+        return ans;
     }
 
     isolated function printFunction(server:Input ifs) {
-      Temp temp = checkpanic ifs.cloneWithType();
-      io:println("Hello madusanka : ", temp.z);
+        Temp temp = checkpanic ifs.cloneWithType();
+        io:println("Hello madusanka : ", temp.z);
     }
 
     public isolated function getMethods() returns types:Methods {
-        return {"convirt":self.convirtFunction, "print":self.printFunction};
+        return {"convirt": self.convirtFunction, "print": self.printFunction};
     }
 }

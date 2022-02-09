@@ -1,7 +1,8 @@
 import json_rpc.'types;
 import json_rpc.util;
 
-const SUCCESS = "success";
+const SUCCESS = "success"; 
+
 # Description
 #
 # + request - Parameter Description  

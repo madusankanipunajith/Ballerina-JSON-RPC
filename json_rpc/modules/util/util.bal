@@ -1,3 +1,4 @@
+import ballerina/lang.runtime;
 import json_rpc.'types;
 
 public isolated function responseObject(int requestId, any answer) returns 'types:Response {
@@ -113,4 +114,9 @@ public isolated function sendResponse(int id, any result) returns 'types:Respons
     };
 
     return response;
+}
+
+
+public isolated function nap() {
+    runtime:sleep(0.05);
 }

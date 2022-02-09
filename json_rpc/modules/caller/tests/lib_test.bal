@@ -1,66 +1,199 @@
-// import ballerina/test;
-// import json_rpc.store;
-// import json_rpc.validator;
-// import ballerina/io;
+import ballerina/test;
+import json_rpc.types;
+import ballerina/io;
+import ballerina/lang.value;
 
-// type Nip record {|
-//     int x;
-//     int y;
-// |};
+type Nip record {|
+    int x;
+    int y;
+|};
 
-// public function addFunction(store:Input ifs) returns int|error{
-//   Nip nip = check ifs.cloneWithType();
-//   return nip.x + nip.y;
-// }
+public isolated function addFunction(types:Input ifs) returns int|error{
+  Nip nip = check ifs.cloneWithType();
+  return nip.x + nip.y;
+}
 
-// validator:Request r={
-//     id: 10,
-//     params: "{\"x\":89, \"y\":100},\"id\":10}",
-//     method: "add",
-//     jsonrpc: "2.0"
-// };
+types:Request r={
+    id: 10,
+    params: {"x": 100, "y":89},
+    method: "add",
+    jsonrpc: "2.0"
+};
 
-// string str = "{\"jsonrpc\":\"2.0\",\"method\":\"add\",\"params\":{\"x\":89, \"y\":100},\"id\":10}";
-// string str2 = "{\"foo\": \"boo\"}";
-// string str3 = "[{\"jsonrpc\":\"2.0\",\"method\":\"add\",\"params\":{\"x\":89, \"y\":100},\"id\":10}, {\"jsonrpc\":\"2.0\",\"method\":\"sub\",\"params\":{\"x\":89, \"y\":100},\"id\":10}]";
-// string str4 = "{\"jsonrpc\":\"2.0\",\"method\":\"mult\",\"params\":[10,20,30],\"id\":10}";
-// string str5 = "{\"jsonrpc\":\"2.0\",\"method\":\"print\",\"id\":10";
-// string str6 = "[]";
-// string str60 = "{\"jsonrpc\":\"2.0\",\"method\":\"add\",\"params\":100,\"id\":10}";
+string str = "{\"jsonrpc\":\"2.0\",\"method\":\"add\",\"params\":{\"x\":89, \"y\":100},\"id\":10}";
+string str2 = "{\"foo\": \"boo\"}";
+string str3 = "[{\"jsonrpc\":\"2.0\",\"method\":\"add\",\"params\":{\"x\":89, \"y\":100},\"id\":10}, {\"jsonrpc\":\"2.0\",\"method\":\"sub\",\"params\":{\"x\":89, \"y\":100},\"id\":10}]";
+string str4 = "{\"jsonrpc\":\"2.0\",\"method\":\"mult\",\"params\":[10,20,30],\"id\":10";
+string str5 = "{\"jsonrpc\":\"2.0\",\"method\":\"print\"}";
+string str6 = "[]";
+string str60 = "{\"jsonrpc\":\"2.0\",\"method\":\"add\",\"params\":100,\"id\":10}";
 
-// string str7 = "{\"id\":10,\"result\":189,\"jsonrpc\":\"2.0\"}";
-// string str8 = "{\"jsonrpc\":\"2.0\",\"method\":\"add\",\"params\":100}";
+string str7 = "{\"id\":10,\"result\":189,\"jsonrpc\":\"2.0\"}";
+string str8 = "{\"jsonrpc\":\"2.0\",\"method\":\"add\",\"params\":100}";
+string str9 = "[1]";
 
 
-// validator:Error res1 ={
-//     id: null,
-//     err:{"code": "-32700", "message": "Parse error"},
-//     jsonrpc: "2.0"
-// };
+types:Error res1 ={
+    id: null,
+    err:{"code": "-32700", "message": "Parse error"},
+    jsonrpc: "2.0"
+};
 
-// validator:Error res2 ={
-//     id: null,
-//     err:{"code": "-32600", "message": "something went wrong in message conversion or Invalid request"},
-//     jsonrpc: "2.0"
-// };
+types:Error res2 ={
+    id: null,
+    err:{"code": "-32600", "message": "something went wrong in message conversion or Invalid request"},
+    jsonrpc: "2.0"
+};
 
-// validator:Error res3 ={
-//     id: 10,
-//     err:{code: "-32602", message: "Invalid method parameters"},
-//     jsonrpc: "2.0"
-// };
+types:Error res3 ={
+    id: 10,
+    err:{code: "-32602", message: "Invalid method parameters"},
+    jsonrpc: "2.0"
+};
 
-// validator:Request res4={
-//     id: 10,
-//     method: "add",
-//     params: {x:89, y:100},
-//     jsonrpc: "2.0" 
-// };
+types:Error res4 ={
+    id: null,
+    err:{code: "-32600", message: "Invalid request"},
+    jsonrpc: "2.0"
+};
 
-// @test:BeforeEach
-// public function startTesting() {
-//     io:println("Testing is starting...");
-// }
+types:Response res5={
+    id: 10,
+    result: 189,
+    jsonrpc: "2.0" 
+};
+
+@test:BeforeEach
+public function startTesting() {
+    io:println("Testing is starting...");
+}
+
+@test:Config{}
+public function testRequestIdentifierInvalidRequest() {
+    types:Identy requestIdentifierResult = requestIdentifier(str6);
+    test:assertEquals(<types:Error>requestIdentifierResult, res4, msg = "Testing has been failed");
+}
+
+@test:Config{}
+public function testRequestIdentifierParseError() {
+    types:Identy requestIdentifierResult = requestIdentifier(str4);
+    test:assertEquals(<types:Error>requestIdentifierResult, res1, msg = "Testing has been failed");
+}
+
+@test:Config{}
+public function testRequestIdentifierJsonType() {
+    types:Identy requestIdentifierResult = requestIdentifier(str2);
+    boolean result = false;
+
+    if requestIdentifierResult is json{
+        result = true;
+    }
+    test:assertTrue(result, msg = "Testing has been failed");
+}
+
+@test:Config{}
+public function testRequestIdentifierBatchType() {
+    types:Identy requestIdentifierResult = requestIdentifier(str3);
+    boolean result = false;
+
+    if requestIdentifierResult is any[]{
+        result = true;
+    }
+    test:assertTrue(result, msg = "Testing has been failed");
+}
+
+@test:Config{}
+public function testCheckerInvalidParameters() {
+    json jsn = checkpanic value:fromJsonString(str60);
+    types:Error|types:Request|types:Notification|null checkerResult = checker(jsn);
+    test:assertEquals(<types:Error>checkerResult, res3, msg = "Testing has been failed");
+}
+
+@test:Config{}
+public function testCheckerInvalidTypeConversion() {
+    json jsn = checkpanic value:fromJsonString(str60);
+    types:Error|types:Request|types:Notification|null checkerResult = checker(jsn);
+    test:assertEquals(<types:Error>checkerResult, res3, msg = "Testing has been failed");
+}
+
+@test:Config{}
+public function testCheckerInvalidNotificationParams() {
+    json jsn = checkpanic value:fromJsonString(str8);
+    types:Error|types:Request|types:Notification|null checkerResult = checker(jsn);
+    test:assertEquals(checkerResult, null, msg = "Testing has been failed");
+}
+
+@test:Config{}
+public function testCheckerNotification() {
+    boolean result = false;
+    json jsn = checkpanic value:fromJsonString(str5);
+    types:Error|types:Request|types:Notification|null checkerResult = checker(jsn);
+    if checkerResult is types:Notification{
+        result = true;
+    }
+    test:assertTrue(result, msg = "Testing has been failed");
+}
+
+@test:Config{}
+public function testCheckerRequest() {
+    boolean result = false;
+    json jsn = checkpanic value:fromJsonString(str);
+    types:Error|types:Request|types:Notification|null checkerResult = checker(jsn);
+    if checkerResult is types:Request{
+        result = true;
+    }
+    test:assertTrue(result, msg = "Testing has been failed");
+}
+
+@test:Config{}
+public function callerExecuteFunction(){
+    types:Response|error|null executorResult = executor(r, addFunction);
+    test:assertEquals(executorResult, res5, msg = "Testing has been failed");
+}
+
+@test:Config{}
+public function testInvalidRequestInsideArray() {
+    types:Identy requestIdentifierResult = requestIdentifier(str9);
+    boolean result = false;
+
+    if requestIdentifierResult is json[]{
+        result = true;
+    }
+    test:assertTrue(result, msg = "Testing has been failed");
+}
+
+@test:Config{}
+public function testCheckerInvalidRequest() {
+    boolean result = false;
+    types:Error|types:Request|types:Notification|null checkerResult = checker(1);
+    if checkerResult is types:Error{
+        result = true;
+    }
+    test:assertTrue(result, msg = "Testing has been failed");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // @test:Config{}
 // public function checkerTest() {
 //     validator:Error|validator:Request|null result = checker(str5);

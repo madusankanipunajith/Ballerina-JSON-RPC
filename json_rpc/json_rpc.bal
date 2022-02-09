@@ -1,194 +1,118 @@
-// import json_rpc.'types;
-// import json_rpc.'client;
-// import ballerina/io;
-
-// public function main() returns error? {
-
-//     'types:TCPConfig tcpConfig={
-//        tcpRemoteHost: "localhost",
-//        tcpRemotePort: 9000
-//     };
-    
-//     'client:Client cl = new (tcpConfig,[new CalculatorMethod()]);
-//     CalculatorMethod calculatorMethod = <CalculatorMethod> check cl.ops(CalculatorMethod);
-    
-//     calculatorMethod.addFunction(125, 100, function(types:JRPCResponse t) returns () {
-//         io:println(t);
-//     });
-
-//     calculatorMethod.subFunction(189, {"x": 200, "y": 100}, function (types:JRPCResponse t) returns () {
-//        io:println(t); 
-//     });
-
-//     cl.closeClient();
-
-// }
-
-// class CalculatorMethod {
-//     *'client:JRPCClientMethods;
-
-//     function init() {
-//         self.clientService = new();
-//     }
-
-//     public function addFunction(int id, json params, function ('types:JRPCResponse response) callback) {
-//         'types:Request r = {
-//             id: id,
-//             params: params,
-//             method: "add"
-//         };
-
-//         types:JRPCResponse sendMessage = self.clientService.sendMessage(r);
-//         callback(sendMessage);
-//     }
-
-//     public function subFunction(int id, json params, function ('types:JRPCResponse response) callback) {
-//         'types:Request r = {
-//             id: id,
-//             params: params,
-//             method: "sub"
-//         };
-
-//         types:JRPCResponse sendMessage = self.clientService.sendMessage([r,r,r,r]);
-//         callback(sendMessage);
-//     }
-
-//     public function notFunction(json params) {
-//         'types:Notification n = {
-//             params: params,
-//             method: "mult"
-//         };
-
-//         self.clientService.sendNotification(n);
-//     }
-// }
-
-
-
+import json_rpc.'client;
 import ballerina/io;
-import ballerina/log;
-import ballerina/tcp;
-import json_rpc.server;
 import json_rpc.types;
 
-type Nip record {|
-    int x;
-    int y;
-|};
+// public function main() {
+//     'client:WSClient wsClient = new("localhost",3000);
+//     wsClient.register();
 
-type Temp record {
-  float z;
-};
+//     wsClient.sendRequest("add", {"x":100, "y": 80}, function (types:Response|types:Error u) returns () {
+//         io:println("1 : ", u);
+//     });
 
-
-
-
-service on new tcp:Listener(9000) {
-
-    remote function onConnect(tcp:Caller caller) returns tcp:ConnectionService {
-        io:println("Client connected to echo server: ", caller.remotePort);
-        return new MainTCPService();
-    }
-}
-
-isolated service class MainTCPService {
-    *tcp:ConnectionService;
-
-    remote function onBytes(tcp:Caller caller, readonly & byte[] data) returns tcp:Error? {
-        io:println("Echo: ", string:fromBytes(data));
-           
-            // calling the library
-            Calculator calc = new();
-            server:Server s1 = new([calc]);
-            string input = checkpanic string:fromBytes(data); 
-            any runner = s1.runner(input);io:println(runner);
-
-            return caller->writeBytes(runner.toString().toBytes());
-                
-    }
-
-    remote function onError(tcp:Error err) {
-        log:printError("An error occurred", 'error = err);
-    }
-
-    remote function onClose() {
-        io:println("Client left");
-    }
-}
-
-
-
-
-
-class Calculator{
-  *server:JRPCService;
-
-    function init() {
-      CalcMethods cmethods = new();
-      self.methods = cmethods;
-    }
-
-    public isolated function name() returns string|error {
-        return "calculator";
-    }
-
-}
-
-isolated class CalcMethods {
-  *server:JRPCMethods;
-
-    isolated function addFunction(server:Input ifs) returns int|error{
-      Nip nip = check ifs.cloneWithType();
-      return nip.x + nip.y;
-    }
-
-    isolated function subFunction(server:Input ifs) returns int|error{
-      Nip nip = check ifs.cloneWithType();
-      return nip.x - nip.y;
-    }
+//     wsClient.sendRequest("sub", {"x":100, "y": 80}, function (types:Response|types:Error u) returns () {
+//         io:println("2 : ", u);
+//     });
     
-    public isolated function getMethods() returns 'types:Methods{
+//     wsClient.sendRequest("sub", 100, function (types:Response|types:Error u) returns () {
+//         io:println("3 : ", u);
+//     });
 
-        'types:Methods meth={
-          "add": self.addFunction,
-          "sub": self.subFunction
-        };
 
-        return meth;
-    }    
+//     wsClient.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+//         io:println("4 : ", u);
+//     });
+    
+//     wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+//         io:println("5 : ", u);
+//     });
 
+//     wsClient.sendRequestBatch([{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+//         io:println("6 : ", u);
+//     });
+    
+//     wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+//         io:println("7 : ", u);
+//     });
+
+//     wsClient.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+//         io:println("8 : ", u);
+//     });
+    
+//     wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+//         io:println("9 : ", u);
+//     });
+    
+//     // wsClient.sendRequestBatch([],function ('client:BatchJRPCOutput|types:Error u) returns () {
+//     //     io:println("6 : ", u);
+//     // });
+
+//     wsClient.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+//         io:println("10 : ", u);
+//     });
+    
+//     wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+//         io:println("11 : ", u);
+//     });
+
+//     wsClient.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+//         io:println("12 : ", u);
+//     });
+    
+//     wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+//         io:println("13 : ", u);
+//     });
+
+//     wsClient.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+//         io:println("14 : ", u);
+//     });
+    
+//     wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+//         io:println("15 : ", u);
+//     });
+
+//     wsClient.closeClient();   
+    
+// }
+
+
+
+
+
+
+
+
+
+
+public function main() {
+    CalculatorClient calc = new("localhost",3000);
+    calc.starts();
+
+    calc.add("add", {"x":100, "y": 80}, function (types:Response|types:Error u) returns () {
+        io:println(u);
+    });
+
+    calc.close();
 }
 
+class CalculatorClient {
+    private 'client:WSClient wsClient;
 
-class Thermometer {
-  *server:JRPCService;
-
-    function init() {
-      TherMethods tmethods = new();
-      self.methods = tmethods;
+    public function init(string host, int port) {
+        self.wsClient = new(host,port);
     }
 
-    public isolated function name() returns string|error {
-        return "thermometer";
-    }
-}
-
-isolated class TherMethods {
-  *server:JRPCMethods;
-
-    isolated function convirtFunction(server:Input ifs) returns error|float{
-      Temp temp = check ifs.cloneWithType();
-      float ans = (temp.z*9/5) + 32;
-      return ans;
+    public function starts() {
+        self.wsClient.register();
     }
 
-    isolated function printFunction(server:Input ifs) {
-      Temp temp = checkpanic ifs.cloneWithType();
-      io:println("Hello madusanka : ", temp.z);
+    public function close() {
+        self.wsClient.closeClient();
     }
 
-    public isolated function getMethods() returns types:Methods {
-        return {"convirt":self.convirtFunction, "print":self.printFunction};
+    public function add(string method, anydata params, function (types:Response|types:Error out) response) {
+        self.wsClient.sendRequest(method,params,function (types:Response|types:Error u) returns () {
+           response(u); 
+        });
     }
 }
-

@@ -1,64 +1,33 @@
-import asus/json_rpc.'types;
 import asus/json_rpc.'client;
 import ballerina/io;
+import asus/json_rpc.types;
 
-public function main() returns error? {
+public function main() {
+    'client:WSClient wsClient = new("ws://localhost:3000");
+    wsClient.register();
 
-    'types:TCPConfig tcpConfig={
-       tcpRemoteHost: "localhost",
-       tcpRemotePort: 9000
-    };
+    wsClient.sendRequest("add", {"x":100, "y": 80}, function (types:Response|types:Error u) returns () {
+        io:println("1 : ", u);
+    });
 
-    'client:Client cl = new (tcpConfig, new CalculatorMethod());
-    CalculatorMethod calculatorMethod = <CalculatorMethod>cl.ops();
+    wsClient.sendRequest("sub", {"x":100, "y": 80}, function (types:Response|types:Error u) returns () {
+        io:println("2 : ", u);
+    });
     
-    calculatorMethod.addFunction(125, {"x": 10, "y": 20}, function(types:JRPCResponse t) returns () {
-        io:println(t);
+    wsClient.sendRequest("sub", 100, function (types:Response|types:Error u) returns () {
+        io:println("3 : ", u);
     });
 
-    calculatorMethod.subFunction(189, {"x": 200, "y": 100}, function (types:JRPCResponse t) returns () {
-       io:println(t); 
+    wsClient.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+        io:println("4 : ", u);
     });
+    
+    wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {
+        io:println("5 : ", u);
+    });
+    
+    
 
-    cl.closeClient();
-
-}
-
-class CalculatorMethod {
-    *'client:JRPCClientMethods;
-
-    function init() {
-        self.clientService = new();
-    }
-
-    public function addFunction(int id, json params, function ('types:JRPCResponse response) callback) {
-        'types:Request r = {
-            id: id,
-            params: params,
-            method: "add"
-        };
-
-        types:JRPCResponse sendMessage = self.clientService.sendMessage(r);
-        callback(sendMessage);
-    }
-
-    public function subFunction(int id, json params, function ('types:JRPCResponse response) callback) {
-        'types:Request r = {
-            id: id,
-            params: params,
-            method: "sub"
-        };
-
-        types:JRPCResponse sendMessage = self.clientService.sendMessage(r);
-        callback(sendMessage);
-    }
-
-    public function notFunction(json params) {
-        'types:Notification n = {
-            params: params,
-            method: "mult"
-        };
-
-        self.clientService.sendNotification(n);
-    }
+    //wsClient.closeClient();   
+    
 }

@@ -3,7 +3,6 @@ import json_rpc.'types;
 import json_rpc.util;
 
 type BatchResponse 'types:JsonRPCTypes?[];
-
 # User Input parameters  
 public type Input 'types:InputFunc|anydata[];
 
@@ -14,7 +13,6 @@ public class JRPCMethods {
     public isolated function getMethods() returns types:Methods{
         return {};
     }
-
 }
 
 public class JRPCService {
@@ -68,7 +66,7 @@ public class Server {
 
         return util:serverError();
     }
-    
+
     private isolated function methodFilter('types:Request|'types:Notification result) returns 'types:Method|error {
         string method = result.method;
         'types:Methods allMethods = {};
@@ -97,7 +95,6 @@ public class Server {
             return error("service is not initialized");
         }
 
-        //'types:Methods allMethodss = self.jservice.methods.getMethods();
         'types:Method|error selectedMethod = trap allMethods.get(methodName);
 
         if selectedMethod is error {
@@ -129,7 +126,6 @@ public class Server {
         BatchResponse batch_res_array = [];
 
         foreach var item in message {
-            
             lock {
                 if caller:checker(item) is 'types:Request {
                     batch_res_array.push(self.executeSingleJsonRequest(<'types:Request>caller:checker(item)));
@@ -141,7 +137,7 @@ public class Server {
                     // discarding the output of the executor
                     null _ = self.executeSingleJsonNotification(<'types:Notification>caller:checker(item));
                 }
-            }   
+            }
 
             lock {
                 if caller:checker(item) is 'types:Error {
@@ -151,4 +147,5 @@ public class Server {
         }
         return batch_res_array;
     }
+
 }

@@ -55,6 +55,8 @@ public type Methods record {|
 
 public type JRPCResponse Response|Error|JsonRPCTypes?[]|();
 
+public type BatchJRPCOutput JsonRPCTypes?[];
+
 public type TCPConfig record {|
     string tcpRemoteHost;
     int tcpRemotePort;
