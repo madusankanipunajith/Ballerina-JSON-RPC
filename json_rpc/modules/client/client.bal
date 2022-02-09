@@ -11,6 +11,7 @@ const NOT_RECIEVED = "Response message hasn't been recieved.";
 const DISCONNECT = "Client has been disconnected from the server.";
 const DISCONNECT_ERROR = "Something went wrong while client is disconnecting from the server";
 const UNMATCHED_ERROR = "Unmatchable error has been recieved by server.";
+const REASON = "user disconneted the client from the server";
 
 public type BatchInput record {|
     boolean notification = false;
@@ -241,7 +242,7 @@ public class WSClient {
             util:nap();
             lock {
                 if self.store.requestStore.length() === 0 { //log:printInfo("Total : "+self.store.requestStore.length().toJsonString());
-                    websocket:Error? close = self.wsClient->close(1000,"user disconneted the client from the server",5);
+                    websocket:Error? close = self.wsClient->close(1000,REASON,5);
                     if !(close is websocket:Error) {
                         log:printInfo(DISCONNECT);
                         break;
