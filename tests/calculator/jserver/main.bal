@@ -63,8 +63,8 @@ service class WsService {
         string input = checkpanic string:fromBytes(data);
         any runner = s1.runner(input);
         io:println("output: ",runner);
-        return caller->writeBinaryMessage(runner.toString().toBytes());
         
+        return caller->writeBinaryMessage(runner.toString().toBytes());        
     }
 }
 
