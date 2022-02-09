@@ -3,7 +3,7 @@ import ballerina/io;
 import json_rpc.types;
 
 // public function main() {
-//     'client:WSClient wsClient = new("ws://localhost:3000");
+//     'client:WSClient wsClient = new("localhost",3000);
 //     wsClient.register();
 
 //     wsClient.sendRequest("add", {"x":100, "y": 80}, function (types:Response|types:Error u) returns () {
@@ -85,7 +85,7 @@ import json_rpc.types;
 
 
 public function main() {
-    CalculatorClient calc = new("ws://localhost:3000");
+    CalculatorClient calc = new("localhost",3000);
     calc.starts();
 
     calc.add("add", {"x":100, "y": 80}, function (types:Response|types:Error u) returns () {
@@ -106,8 +106,8 @@ public function main() {
 class CalculatorClient {
     private 'client:WSClient wsClient;
 
-    public function init(string path) {
-        self.wsClient = new(path);
+    public function init(string host, int port) {
+        self.wsClient = new(host, port);
     }
 
     public function starts() {
