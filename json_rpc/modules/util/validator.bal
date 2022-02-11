@@ -4,7 +4,7 @@ import json_rpc.'types;
 #
 # + message - Fetched single json message
 # + return - Return json rpc Request/Response/Error/Notification  
-public isolated function messageValidator(json message) returns 'types:JsonRPCTypes {
+public isolated function validate(json message) returns 'types:JsonRPCTypes {
     'types:JsonRecord|error jmessage = trap message.cloneWithType();
 
     if jmessage is error {

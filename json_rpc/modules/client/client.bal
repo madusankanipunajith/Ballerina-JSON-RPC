@@ -37,12 +37,12 @@ function fetchResponse(string response) returns types:JRPCResponse {
             return <BatchJRPCOutput>[];
         } else {
             foreach var item in fetchMessage {
-                bjo.push(util:messageValidator(<json>item));
+                bjo.push(util:validate(<json>item));
             }
             return bjo;
         }
     } else if fetchMessage is json {
-        types:JsonRPCTypes result = util:messageValidator(fetchMessage);
+        types:JsonRPCTypes result = util:validate(fetchMessage);
         types:Response|types:Error convirtedResponse = <types:Response|types:Error>result;
         return convirtedResponse;
     } else {
