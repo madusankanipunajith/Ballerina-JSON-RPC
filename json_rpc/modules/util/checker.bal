@@ -1,14 +1,12 @@
-import json_rpc.validator;
-import json_rpc.util;
 import json_rpc.'types;
 
 # Check whether fetched message is with correct standards according to the json rpc specification
 #
 # + message - json message
 # + return - Return valid error/request/notification  
-public isolated function checker(json message) returns 'types:Error|'types:Request|'types:Notification|null {
+public isolated function checkInput(json message) returns 'types:Error|'types:Request|'types:Notification|null {
     // convirt the json message into necessary jrpc data type (unmarshalling process)
-    'types:JsonRPCTypes result = validator:messageValidator(message);
+    'types:JsonRPCTypes result = validate(message);
 
     if result is 'types:Error {
         return result;
@@ -18,7 +16,7 @@ public isolated function checker(json message) returns 'types:Error|'types:Reque
         anydata reqestParams = result.params;
 
         if (!(reqestParams is anydata[]) && !(reqestParams is map<anydata>) && !(reqestParams === ())) {
-            return util:invalidMethodParams(result.id);
+            return invalidMethodParams(result.id);
         }
 
         return result;

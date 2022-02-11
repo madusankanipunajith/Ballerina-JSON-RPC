@@ -46,4 +46,3 @@ public isolated function executor('types:Request|'types:Notification request, is
         return null;
     }
 }
-

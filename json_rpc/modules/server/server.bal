@@ -1,4 +1,3 @@
-import json_rpc.caller;
 import json_rpc.'types;
 import json_rpc.util;
 
@@ -57,26 +56,26 @@ public class Server {
     # + message - String type message which is recieved from the client
     # + return - Return jrpc response/batch/error/nil
     public isolated function runner(string message) returns 'types:JsonRPCTypes|BatchResponse|null {
-        'types:Identy identity = caller:requestIdentifier(message);
+        'types:Identy identity = util:fetchRequest(message);
 
         if identity is 'types:Error {
             return identity;
         }
 
         if identity is map<json> {
-            if caller:checker(identity) is 'types:Request {
-                return self.executeSingleJsonRequest(<'types:Request>caller:checker(identity));
+            if util:checkInput(identity) is 'types:Request {
+                return self.executeSingleJsonRequest(<'types:Request>util:checkInput(identity));
             }
 
-            if caller:checker(identity) is 'types:Error {
-                return <'types:Error>caller:checker(identity);
+            if util:checkInput(identity) is 'types:Error {
+                return <'types:Error>util:checkInput(identity);
             }
 
-            if caller:checker(identity) is 'types:Notification {
-                return self.executeSingleJsonNotification(<'types:Notification>caller:checker(identity));
+            if util:checkInput(identity) is 'types:Notification {
+                return self.executeSingleJsonNotification(<'types:Notification>util:checkInput(identity));
             }
 
-            if caller:checker(identity) is null {
+            if util:checkInput(identity) is null {
                 return null;
             }
         }
@@ -138,7 +137,7 @@ public class Server {
         if mf is error {
             return util:methodNotFoundError(message.id);
         }
-        return checkpanic caller:executor(message, mf);
+        return checkpanic executor(message, mf);
     }
 
     # Executes a single notification message
@@ -151,7 +150,7 @@ public class Server {
             return null;
         }
 
-        types:Response|null _ = checkpanic caller:executor(message, mf);
+        types:Response|null _ = checkpanic executor(message, mf);
         return null;
     }
 
@@ -164,21 +163,21 @@ public class Server {
 
         foreach var item in message {
             lock {
-                if caller:checker(item) is 'types:Request {
-                    batch_res_array.push(self.executeSingleJsonRequest(<'types:Request>caller:checker(item)));
+                if util:checkInput(item) is 'types:Request {
+                    batch_res_array.push(self.executeSingleJsonRequest(<'types:Request>util:checkInput(item)));
                 }
             }
 
             lock {
-                if caller:checker(item) is 'types:Notification {
+                if util:checkInput(item) is 'types:Notification {
                     // discarding the output of the executor
-                    null _ = self.executeSingleJsonNotification(<'types:Notification>caller:checker(item));
+                    null _ = self.executeSingleJsonNotification(<'types:Notification>util:checkInput(item));
                 }
             }
 
             lock {
-                if caller:checker(item) is 'types:Error {
-                    batch_res_array.push(caller:checker(item));
+                if util:checkInput(item) is 'types:Error {
+                    batch_res_array.push(util:checkInput(item));
                 }
             }
         }
