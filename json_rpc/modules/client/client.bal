@@ -1,6 +1,5 @@
 import json_rpc.types;
 import ballerina/lang.value;
-import json_rpc.validator;
 import ballerina/time;
 import ballerina/log;
 import ballerina/tcp;
@@ -11,17 +10,22 @@ const NOT_RECIEVED = "Response message hasn't been recieved.";
 const DISCONNECT = "Client has been disconnected from the server.";
 const DISCONNECT_ERROR = "Something went wrong while client is disconnecting from the server";
 const UNMATCHED_ERROR = "Unmatchable error has been recieved by server.";
-const REASON = "user disconneted the client from the server";
+const REASON = "User disconneted the client from the server";
 
+# Parameter type of batch methods (sendBatchRequest, sendBatchNotification)
+#
+# + notification - Boolean attribute which is used to identify message is request or notification  
+# + method - Define the method of the message   
+# + params - Define the parameters of the message
 public type BatchInput record {|
     boolean notification = false;
     string method;
     anydata params;
 |};
 
-public type BatchJRPCOutput 'types:JsonRPCTypes?[];
-
-public type SingleJRPCOutput types:Response|types:Error;
+# Private types and methods 
+type BatchJRPCOutput 'types:JsonRPCTypes?[];
+type SingleJRPCOutput types:Response|types:Error;
 
 function fetchResponse(string response) returns types:JRPCResponse {
     BatchJRPCOutput bjo = [];
@@ -33,16 +37,16 @@ function fetchResponse(string response) returns types:JRPCResponse {
             return <BatchJRPCOutput>[];
         } else {
             foreach var item in fetchMessage {
-                bjo.push(validator:messageValidator(<json>item));
+                bjo.push(util:messageValidator(<json>item));
             }
             return bjo;
         }
     } else if fetchMessage is json {
-        types:JsonRPCTypes result = validator:messageValidator(fetchMessage);
+        types:JsonRPCTypes result = util:messageValidator(fetchMessage);
         types:Response|types:Error convirtedResponse = <types:Response|types:Error>result;
         return convirtedResponse;
     } else {
-        return null;
+        return ();
     }
 }
 
@@ -70,6 +74,7 @@ function createBatchNotification(BatchInput[] batch) returns types:JsonRPCTypes[
     return notification;
 }
 
+# This private class is used to manage central store
 class Store {
     int id = 0;
     types:Request[] requestStore = [];
@@ -81,7 +86,7 @@ class Store {
         return self.id;
     }
 
-    public function getResponseStore() returns SingleJRPCOutput[] {
+    public function getResponseStore() returns types:SingleJRPCOutput[] {
         lock {
             return self.responseStore;
         }
@@ -99,7 +104,7 @@ class Store {
         }
     }
 
-    public function pushResponse(SingleJRPCOutput response) {
+    public function pushResponse(types:SingleJRPCOutput response) {
         lock {
             self.responseStore.push(response);
         }
@@ -177,23 +182,42 @@ class Store {
     }
 }
 
+# All the client services are defined here 
 public class ClientService {
+
+    # Client can send a Request message to the server
+    #
+    # + method - Define the method of the message   
+    # + params - Define the parameters of the message   
+    # + callback - Define a callback function which returns an output(response or error) for the particular sent Request. 
     public function sendRequest(string method, anydata params, function (types:Response|types:Error response) callback) {
         return;
     }
 
+    # Client can send a Notification message to the server
+    #
+    # + method - Define the method of the message  
+    # + params - Define the parameters of the message 
     public function sendNotification(string method, anydata params) {
         return;
     }
 
+    # Client can send a batch(collection) of Request messages to the server
+    #
+    # + message - array of BatchInput data types(Request/Notification)  
+    # + callback - This function returns a response(Batch/Error) for particular sent request batch. 
     public function sendRequestBatch(BatchInput[] message, function (types:BatchJRPCOutput|types:Error response) callback) {
         return;
     }
 
+    # Client can send a batch(collection) of Notification messages to the server
+    #
+    # + message - array of BatchInput data types
     public function sendNotificationBatch(BatchInput[] message) {
         return;
     }
 
+    # Client can close the defined client from the server
     public function closeClient() {
         return;
     }
@@ -205,12 +229,17 @@ public class WSClient {
     private websocket:Client wsClient;
     private Store store;
 
+    # Constructor of the websocket client (WSClient class) 
+    #
+    # + host - Remote host (localhost) 
+    # + port - Remote port (3000)
     public function init(string host, int port) {
         string url = "ws://" + host + ":" + port.toString();
         self.wsClient = checkpanic new (url);
         self.store = new ();
     }
 
+    # The function is which is used to register the client
     public function register() {
         worker A {
             while true {
@@ -237,6 +266,7 @@ public class WSClient {
         }
     }
 
+    # Emplimentation of the closeClient method
     public function closeClient() {
         log:printInfo("Total : "+self.store.requestStore.length().toJsonString());
         while true {
@@ -258,18 +288,30 @@ public class WSClient {
 
     }
 
+    # Emplimentation of the sendNotification method
+    #
+    # + method - Define the method of the message   
+    # + params - Define the parameters of the message  
     public function sendNotification(string method, anydata params) {
         string jsonMessage = util:sendNotification(method, params).toJsonString();
         byte[] msgByteArray = jsonMessage.toBytes();
         checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
     }
 
+    # Emplimentation of the sendNotificationBatch method
+    #
+    # + message - array of BatchInput data types
     public function sendNotificationBatch(BatchInput[] message) {
         string jsonMessage = createBatchNotification(message).toJsonString();
         byte[] msgByteArray = jsonMessage.toBytes();
         checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
     }
 
+    # Emplimentation of the sendRequest method in async way
+    #
+    # + method - Define the method of the message   
+    # + params - Define the parameters of the message   
+    # + callback - Define a callback function which returns the output for particular sent Request asynchronously.
     public function sendRequest(string method, anydata params, function (types:Response|types:Error response) returns () callback) {
         int id = self.store.genarateId();
         self.store.pushRequest(util:sendRequest(id, method, params));
@@ -286,6 +328,10 @@ public class WSClient {
         }
     }
 
+    # Emplimentation of the sendRequestBatch method in async way
+    #
+    # + message - array of BatchInput data types  
+    # + callback - This function returns the response for particular sent request batch asynchronously. 
     public function sendRequestBatch(BatchInput[] message, function (types:BatchJRPCOutput|types:Error response) returns () callback) {
         types:JsonRPCTypes[] request = [];
         int[] ids = [];
@@ -383,6 +429,7 @@ public class WSClient {
     }
 }
 
+# Create a client using TCP protocol (working synchronously)
 public class TCPClient {
     *ClientService;
 

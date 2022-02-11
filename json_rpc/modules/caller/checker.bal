@@ -2,11 +2,12 @@ import json_rpc.validator;
 import json_rpc.util;
 import json_rpc.'types;
 
-# Description
+# Check whether fetched message is with correct standards according to the json rpc specification
 #
-# + message - Parameter Description
-# + return - Return Value Description  
+# + message - json message
+# + return - Return valid error/request/notification  
 public isolated function checker(json message) returns 'types:Error|'types:Request|'types:Notification|null {
+    // convirt the json message into necessary jrpc data type (unmarshalling process)
     'types:JsonRPCTypes result = validator:messageValidator(message);
 
     if result is 'types:Error {

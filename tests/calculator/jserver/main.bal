@@ -12,59 +12,46 @@ type Temp record {
     float z;
 };
 
-// service on new tcp:Listener(9000) {
-
-//     remote function onConnect(tcp:Caller caller) returns tcp:ConnectionService {
-//         io:println("Client connected to echo server: ", caller.remotePort);
-//         return new MainTCPService();
-//     }
-// }
-
-// service class MainTCPService {
-//     *tcp:ConnectionService;
-
-//     remote function onBytes(tcp:Caller caller, readonly & byte[] data) returns tcp:Error? {
-//         io:println("Echo: ", string:fromBytes(data));
-
-//         // calling the library
-//         Calculator calc = new ();
-//         server:Server s1 = new ([calc]);
-//         string input = checkpanic string:fromBytes(data);
-//         any runner = s1.runner(input);
-//         io:println(runner);
-//         return caller->writeBytes(runner.toString().toBytes());
-
-//     }
-
-//     remote function onError(tcp:Error err) {
-//         log:printError("An error occurred", 'error = err);
-//     }
-
-//     remote function onClose() {
-//         io:println("Client left");
-//     }
-// }
-
 service / on new websocket:Listener(3000) {
-    resource isolated function get .() returns websocket:Service|websocket:Error {
+    resource function get .() returns websocket:Service|websocket:Error {
         return new WsService();
     }
 }
 
+CTServer calculatorServer = new ();
+
 service class WsService {
     *websocket:Service;
-
     remote function onBinaryMessage(websocket:Caller caller, byte[] data) returns websocket:Error? {
         io:println("\nmessage: ", string:fromBytes(data));
 
-        //calling the library
-        Calculator calc = new ();
-        server:Server s1 = new ([calc]);
-        string input = checkpanic string:fromBytes(data);
-        any runner = s1.runner(input);
-        io:println("output: ",runner);
-        
-        return caller->writeBinaryMessage(runner.toString().toBytes());        
+        @strand {
+            thread: "any"
+        }
+        worker T {
+            string input = checkpanic string:fromBytes(data);
+            lock {
+                io:println("output: ", calculatorServer.sendResponse(input));
+                return checkpanic caller->writeBinaryMessage(calculatorServer.sendResponse(input).toString().toBytes());
+            }
+        }
+    }
+
+    remote function onClose(websocket:Caller caller, int statusCode, string reason) {
+        io:println(string `Client closed connection with ${statusCode} because of ${reason}`);
+    }
+}
+
+// use case of the server
+class CTServer {
+
+    server:Server serv;
+    function init() {
+        self.serv = new ([new Calculator()]);
+    }
+
+    public isolated function sendResponse(string request) returns any {
+        return self.serv.runner(request);
     }
 }
 
