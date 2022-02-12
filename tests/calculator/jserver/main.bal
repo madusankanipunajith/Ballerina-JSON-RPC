@@ -63,7 +63,7 @@ class Calculator {
         self.methods = cmethods;
     }
 
-    public isolated function name() returns string|error {
+    public isolated function name() returns string {
         return "calculator";
     }
 
@@ -71,7 +71,7 @@ class Calculator {
 
 isolated class CalcMethods {
     *server:JRPCMethods;
-
+    
     isolated function addFunction(server:Input ifs) returns int|error {
         Nip nip = check ifs.cloneWithType();
         return nip.x + nip.y;
@@ -102,7 +102,7 @@ class Thermometer {
         self.methods = tmethods;
     }
 
-    public isolated function name() returns string|error {
+    public isolated function name() returns string {
         return "thermometer";
     }
 }

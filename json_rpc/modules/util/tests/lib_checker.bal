@@ -116,7 +116,7 @@ public function testCheckerRequest() {
 
 @test:Config{}
 public function testInvalidRequestInsideArray() {
-    types:Identy requestIdentifierResult = fetchRequest(str9);
+    types:RequestType requestIdentifierResult = fetchRequest(str9);
     boolean result = false;
 
     if requestIdentifierResult is json[]{

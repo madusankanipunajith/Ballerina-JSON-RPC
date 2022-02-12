@@ -7,7 +7,7 @@ import json_rpc.'types;
 #
 # + requestMessage - string type request message
 # + return - Return the identity of the request message  
-public isolated function fetchRequest(string requestMessage) returns 'types:Identy {
+public isolated function fetchRequest(string requestMessage) returns 'types:RequestType {
 
     any|error fetchMessage = trap value:fromJsonString(requestMessage);
     if fetchMessage is any[] {

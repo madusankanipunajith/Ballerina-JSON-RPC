@@ -32,10 +32,7 @@ public type Notification record {
     string jsonrpc = "2.0";
 };
 
-public type Batch Request|Notification[];
-
 public type JsonRPCTypes Request|Response|Error|Notification;
-
 
 public type InputFunc record {|
     
@@ -45,7 +42,7 @@ public type InputFunc record {|
 
 public type Input InputFunc|anydata[];
 
-public type Identy json|any[]|Error;
+public type RequestType json|any[]|Error;
 
 public type Method isolated function (Input) returns any|error;
 

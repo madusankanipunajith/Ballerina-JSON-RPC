@@ -63,6 +63,6 @@ types:Response res5={
 
 @test:Config{}
 public function callerExecuteFunction(){
-    types:Response|error|null executorResult = executor(r, addFunction);
+    types:Response|error|null executorResult = execute(r, addFunction);
     test:assertEquals(executorResult, res5, msg = "Testing has been failed");
 }

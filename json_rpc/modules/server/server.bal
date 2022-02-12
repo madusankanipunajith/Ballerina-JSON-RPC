@@ -1,10 +1,6 @@
 import json_rpc.'types;
 import json_rpc.util;
 
-const METHODNOTFOUND = "method is not initialized or not found";
-
-type BatchResponse 'types:JsonRPCTypes?[];
-
 # User Input parameters in the server side functions  
 public type Input 'types:InputFunc|anydata[];
 
@@ -14,8 +10,8 @@ public type JRPCSA JRPCService[];
 # Abstract class for the service methods
 public class JRPCMethods {
 
-    # Description
-    # + return - Return Value Description
+    # Inbuilt function for mapping the methods
+    # + return - Returns the Methods mapper 
     public isolated function getMethods() returns types:Methods{
         return {};
     }
@@ -35,7 +31,7 @@ public class JRPCService {
     
     # Auto genarated function to add service name 
     # + return - Return the service name which is defined by user
-    public isolated function name() returns string|error {
+    public isolated function name() returns string {
         return "";
     }
 }
@@ -55,33 +51,33 @@ public class Server {
     #
     # + message - String type message which is recieved from the client
     # + return - Return jrpc response/batch/error/nil
-    public isolated function runner(string message) returns 'types:JsonRPCTypes|BatchResponse|null {
-        'types:Identy identity = util:fetchRequest(message);
+    public isolated function runner(string message) returns 'types:SingleJRPCOutput|'types:BatchJRPCOutput|() {
+        'types:RequestType requestType = util:fetchRequest(message);
 
-        if identity is 'types:Error {
-            return identity;
+        if requestType is 'types:Error {
+            return requestType;
         }
 
-        if identity is map<json> {
-            if util:checkInput(identity) is 'types:Request {
-                return self.executeSingleJsonRequest(<'types:Request>util:checkInput(identity));
+        if requestType is map<json> {
+            if util:checkInput(requestType) is 'types:Request {
+                return self.executeSingleJsonRequest(<'types:Request>util:checkInput(requestType));
             }
 
-            if util:checkInput(identity) is 'types:Error {
-                return <'types:Error>util:checkInput(identity);
+            if util:checkInput(requestType) is 'types:Error {
+                return <'types:Error>util:checkInput(requestType);
             }
 
-            if util:checkInput(identity) is 'types:Notification {
-                return self.executeSingleJsonNotification(<'types:Notification>util:checkInput(identity));
+            if util:checkInput(requestType) is 'types:Notification {
+                return self.executeSingleJsonNotification(<'types:Notification>util:checkInput(requestType));
             }
 
-            if util:checkInput(identity) is null {
-                return null;
+            if util:checkInput(requestType) is null {
+                return ();
             }
         }
 
-        if identity is json[] {
-            return self.executeBatchJson(identity);
+        if requestType is json[] {
+            return self.executeBatchJson(requestType);
         }
 
         return util:serverError();
@@ -137,29 +133,28 @@ public class Server {
         if mf is error {
             return util:methodNotFoundError(message.id);
         }
-        return checkpanic executor(message, mf);
+        return checkpanic execute(message, mf);
     }
 
     # Executes a single notification message
     #
     # + message - jrpc notification
-    # + return - Return nil
-    private isolated function executeSingleJsonNotification('types:Notification message) returns null {
+    private isolated function executeSingleJsonNotification('types:Notification message) returns () {
         'types:Method|error mf = self.methodFilter(message);
         if mf is error {
-            return null;
+            return ();
         }
 
-        types:Response|null _ = checkpanic executor(message, mf);
-        return null;
+        types:Response|null _ = checkpanic execute(message, mf);
+        return ();
     }
 
     # Executes a batch message
     #
     # + message - json array
     # + return - Return a batch response
-    private isolated function executeBatchJson(json[] message) returns BatchResponse {
-        BatchResponse batch_res_array = [];
+    private isolated function executeBatchJson(json[] message) returns 'types:BatchJRPCOutput {
+        'types:BatchJRPCOutput batch_res_array = [];
 
         foreach var item in message {
             lock {
