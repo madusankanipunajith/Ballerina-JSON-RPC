@@ -27,7 +27,7 @@ public function main() {
         io:println("5 : ", u);
     });
 
-    wsClient.sendRequestBatch([{method: "sub", params: {"x":100, "y": 80}}],function (types:BatchJRPCOutput|types:Error u) returns () {
+    wsClient.sendRequestBatch([{method: "div", params: {"x":100, "yz": 80}}],function (types:BatchJRPCOutput|types:Error u) returns () {
         io:println("6 : ", u);
     });
     

@@ -128,12 +128,18 @@ public class Server {
     #
     # + message - jrpc request
     # + return - Return jrpc response/error
-    private isolated function executeSingleJsonRequest('types:Request message) returns 'types:Error|'types:Response|null {
+    private isolated function executeSingleJsonRequest('types:Request message) returns 'types:Error|'types:Response|() {
         'types:Method|error mf = self.methodFilter(message);
         if mf is error {
             return util:methodNotFoundError(message.id);
         }
-        return checkpanic execute(message, mf);
+
+        if  execute(message, mf) is error{
+            return util:internalError(message.id);
+        }else {
+            return checkpanic execute(message, mf);
+        }
+       
     }
 
     # Executes a single notification message
@@ -141,12 +147,16 @@ public class Server {
     # + message - jrpc notification
     private isolated function executeSingleJsonNotification('types:Notification message) returns () {
         'types:Method|error mf = self.methodFilter(message);
+        
+        // server never return an output even an error is triggered
         if mf is error {
             return ();
         }
-
-        types:Response|null _ = checkpanic execute(message, mf);
-        return ();
+        // server never return an output even the execution is triggered
+        if execute(message, mf) is error|() {
+            return ();     
+        }
+       
     }
 
     # Executes a batch message

@@ -71,7 +71,7 @@ class Calculator {
 
 isolated class CalcMethods {
     *server:JRPCMethods;
-    
+
     isolated function addFunction(server:Input ifs) returns int|error {
         Nip nip = check ifs.cloneWithType();
         return nip.x + nip.y;
@@ -82,11 +82,17 @@ isolated class CalcMethods {
         return nip.x - nip.y;
     }
 
+    isolated function divFunction(server:Input ifs) returns float|error{
+        Nip nip = check ifs.cloneWithType();
+        return <float>nip.x/<float>nip.y;
+    }
+
     public isolated function getMethods() returns 'types:Methods {
 
         'types:Methods meth = {
         "add": self.addFunction,
-        "sub": self.subFunction
+        "sub": self.subFunction,
+        "div": self.divFunction
         };
 
         return meth;
