@@ -1,13 +1,5 @@
-import json_rpc.caller;
 import json_rpc.'types;
 import json_rpc.util;
-
-const METHODNOTFOUND = "method is not initialized or not found";
-
-type BatchResponse 'types:JsonRPCTypes?[];
-
-# User Input parameters in the server side functions  
-public type Input 'types:InputFunc|anydata[];
 
 # Json rpc service array
 public type JRPCSA JRPCService[];
@@ -15,8 +7,8 @@ public type JRPCSA JRPCService[];
 # Abstract class for the service methods
 public class JRPCMethods {
 
-    # Description
-    # + return - Return Value Description
+    # Inbuilt function for mapping the methods
+    # + return - Returns the Methods mapper 
     public isolated function getMethods() returns types:Methods{
         return {};
     }
@@ -36,53 +28,62 @@ public class JRPCService {
     
     # Auto genarated function to add service name 
     # + return - Return the service name which is defined by user
-    public isolated function name() returns string|error {
+    public isolated function name() returns string {
         return "";
     }
 }
 
 # Server class
 public class Server {
-    private JRPCSA jrpcsa = [];
+    private JRPCSA jrpcsa = []; // define an array of services
+    private JRPCService jrpcservice = new(); // define a single service
+    private boolean single; // identifier to find weather it is a single service or not
 
     # Constructor
     #
     # + services - User initialized service/services
-    public isolated function init(JRPCSA services) {
-        self.jrpcsa = services;
+    public isolated function init(JRPCSA|JRPCService services) {
+        if services is JRPCSA {
+            self.jrpcsa = services; 
+            self.single = false;   
+        }else {
+            self.jrpcservice = services;
+            self.single = true;
+        }
+        
     }
 
     # Executes the request message and returns the response message
     #
     # + message - String type message which is recieved from the client
     # + return - Return jrpc response/batch/error/nil
-    public isolated function runner(string message) returns 'types:JsonRPCTypes|BatchResponse|null {
-        'types:Identy identity = caller:requestIdentifier(message);
+    public isolated function runner(string message) returns 'types:SingleJRPCOutput|'types:BatchJRPCOutput|() {
+        'types:RequestType requestType = util:fetchRequest(message);
 
-        if identity is 'types:Error {
-            return identity;
+        if requestType is 'types:Error {
+            return requestType;
         }
 
-        if identity is map<json> {
-            if caller:checker(identity) is 'types:Request {
-                return self.executeSingleJsonRequest(<'types:Request>caller:checker(identity));
+        if requestType is map<json> {
+            if util:checkInput(requestType) is 'types:Request {
+                return self.executeSingleJsonRequest(<'types:Request>util:checkInput(requestType));
             }
 
-            if caller:checker(identity) is 'types:Error {
-                return <'types:Error>caller:checker(identity);
+            if util:checkInput(requestType) is 'types:Error {
+                return <'types:Error>util:checkInput(requestType);
             }
 
-            if caller:checker(identity) is 'types:Notification {
-                return self.executeSingleJsonNotification(<'types:Notification>caller:checker(identity));
+            if util:checkInput(requestType) is 'types:Notification {
+                return self.executeSingleJsonNotification(<'types:Notification>util:checkInput(requestType));
             }
 
-            if caller:checker(identity) is null {
-                return null;
+            if util:checkInput(requestType) is null {
+                return ();
             }
         }
 
-        if identity is json[] {
-            return self.executeBatchJson(identity);
+        if requestType is json[] {
+            return self.executeBatchJson(requestType);
         }
 
         return util:serverError();
@@ -133,52 +134,62 @@ public class Server {
     #
     # + message - jrpc request
     # + return - Return jrpc response/error
-    private isolated function executeSingleJsonRequest('types:Request message) returns 'types:Error|'types:Response|null {
+    private isolated function executeSingleJsonRequest('types:Request message) returns 'types:Error|'types:Response|() {
         'types:Method|error mf = self.methodFilter(message);
         if mf is error {
             return util:methodNotFoundError(message.id);
         }
-        return checkpanic caller:executor(message, mf);
+
+        types:Response|error|() executeResult = execute(message,mf);
+        if executeResult is error {
+            return util:internalError(message.id);
+        }else{
+            return executeResult;
+        }
+       
     }
 
     # Executes a single notification message
     #
     # + message - jrpc notification
-    # + return - Return nil
-    private isolated function executeSingleJsonNotification('types:Notification message) returns null {
+    private isolated function executeSingleJsonNotification('types:Notification message) returns () {
         'types:Method|error mf = self.methodFilter(message);
+        
+        // server never return an output even an error is triggered
         if mf is error {
-            return null;
+            return ();
         }
-
-        types:Response|null _ = checkpanic caller:executor(message, mf);
-        return null;
+        // server never return an output even the execution is triggered
+        if execute(message, mf) is error|() {
+            return ();     
+        }
+       
     }
 
     # Executes a batch message
     #
     # + message - json array
     # + return - Return a batch response
-    private isolated function executeBatchJson(json[] message) returns BatchResponse {
-        BatchResponse batch_res_array = [];
+    private isolated function executeBatchJson(json[] message) returns 'types:BatchJRPCOutput {
+        'types:BatchJRPCOutput batch_res_array = [];
 
         foreach var item in message {
             lock {
-                if caller:checker(item) is 'types:Request {
-                    batch_res_array.push(self.executeSingleJsonRequest(<'types:Request>caller:checker(item)));
+                if util:checkInput(item) is 'types:Request {
+                    batch_res_array.push(self.executeSingleJsonRequest(<'types:Request>util:checkInput(item)));
                 }
             }
 
             lock {
-                if caller:checker(item) is 'types:Notification {
+                if util:checkInput(item) is 'types:Notification {
                     // discarding the output of the executor
-                    null _ = self.executeSingleJsonNotification(<'types:Notification>caller:checker(item));
+                    null _ = self.executeSingleJsonNotification(<'types:Notification>util:checkInput(item));
                 }
             }
 
             lock {
-                if caller:checker(item) is 'types:Error {
-                    batch_res_array.push(caller:checker(item));
+                if util:checkInput(item) is 'types:Error {
+                    batch_res_array.push(util:checkInput(item));
                 }
             }
         }

@@ -5,7 +5,7 @@ import json_rpc.'types;
 function testJsonRequest() {
     string str = "{\"jsonrpc\":\"2.0\",\"method\":\"display\",\"params\":{\"number\":89, \"street\":\"main street\", \"town\":\"Colombo\"},\"id\":10}";
     json jsn = checkpanic value:fromJsonString(str);
-    'types:JsonRPCTypes|error messageValidatorResult = messageValidator(jsn);
+    'types:JsonRPCTypes|error messageValidatorResult = validate(jsn);
     
     boolean result = false;
     if messageValidatorResult is 'types:Request{
@@ -20,7 +20,7 @@ function testJsonRequest() {
 function testJsonResponse() {
     string str2 = "{\"id\":10,\"result\":\"this is the result came from server\",\"jsonrpc\":\"2.0\"}";
     json jsn = checkpanic value:fromJsonString(str2);
-    'types:JsonRPCTypes|error messageValidatorResult = messageValidator(jsn);
+    'types:JsonRPCTypes|error messageValidatorResult = validate(jsn);
 
     boolean result = false;
     if messageValidatorResult is 'types:Response{
@@ -34,7 +34,7 @@ function testJsonResponse() {
 function testJsonNotification() {
     string str9 = "{\"jsonrpc\":\"2.0\",\"method\":\"display\",\"params\":{\"number\":89, \"street\":\"main street\", \"town\":\"Colombo\"}}";
     json jsn = checkpanic value:fromJsonString(str9);
-    'types:JsonRPCTypes|error messageValidatorResult = messageValidator(jsn);
+    'types:JsonRPCTypes|error messageValidatorResult = validate(jsn);
 
     boolean result = false;
     if messageValidatorResult is 'types:Notification{
@@ -50,8 +50,8 @@ function testJsonError() {
     string str5 = "{\"jsonrpc\": \"2.0\", \"err\": {\"code\": -32601, \"message\": \"Method not found\"}, \"id\":23}";
     json jsn = checkpanic value:fromJsonString(str3);
     json jsn2 = checkpanic value:fromJsonString(str5);
-    'types:JsonRPCTypes|error messageValidatorResult = messageValidator(jsn);
-    'types:JsonRPCTypes|error messageValidatorResult2 = messageValidator(jsn2);
+    'types:JsonRPCTypes|error messageValidatorResult = validate(jsn);
+    'types:JsonRPCTypes|error messageValidatorResult2 = validate(jsn2);
 
     boolean result = false;
     boolean result2 = false;
@@ -71,7 +71,7 @@ function testJsonError() {
 function testInvalidRequest() {
     string str = "{\"id\":10,\"result\":\"this is the result came from server\",\"params\": 100,\"jsonrpc\":\"2.0\"}";
     json jsn = checkpanic value:fromJsonString(str);
-    'types:JsonRPCTypes|error messageValidatorResult = messageValidator(jsn);
+    'types:JsonRPCTypes|error messageValidatorResult = validate(jsn);
 
     boolean result = false;
     

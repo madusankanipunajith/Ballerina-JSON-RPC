@@ -6,6 +6,7 @@ public function main() {
     'client:WSClient wsClient = new("localhost",3000);
     wsClient.register();
 
+
     wsClient.sendRequest("add", {"x":100, "y": 80}, function (types:Response|types:Error u) returns () {
         io:println("1 : ", u);
     });
@@ -27,7 +28,7 @@ public function main() {
         io:println("5 : ", u);
     });
 
-    wsClient.sendRequestBatch([{method: "sub", params: {"x":100, "y": 80}}],function (types:BatchJRPCOutput|types:Error u) returns () {
+    wsClient.sendRequestBatch([{method: "div", params: {"x":100, "yz": 80}}],function (types:BatchJRPCOutput|types:Error u) returns () {
         io:println("6 : ", u);
     });
     
@@ -44,7 +45,7 @@ public function main() {
     });
     
     // wsClient.sendRequestBatch([],function (types:BatchJRPCOutput|types:Error u) returns () {
-    //     io:println("6 : ", u);
+    //     io:println("10 : ", u);
     // });
 
     // wsClient.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}},{method: "sub", params: {"x":100, "y": 80}}],function ('client:BatchJRPCOutput|types:Error u) returns () {

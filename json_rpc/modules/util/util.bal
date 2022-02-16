@@ -68,6 +68,20 @@ public isolated function serverError() returns 'types:Error {
     return err;
 }
 
+# Create an error for internal error according to the json rpc 2.0 specification
+#
+# + requestId - Id of the request message
+# + return - Return a json rpc error message
+public isolated function internalError(int requestId) returns 'types:Error {
+    'types:Error err = {
+        id: requestId,
+        err: {"code": "-32603", "message": "Internal error"},
+        jsonrpc: "2.0"
+    };
+
+    return err;
+}
+
 # Create an error for invalid request message according to the json rpc 2.0 specification
 # + return - Return a json rpc error message  
 public isolated function invalidRequestError() returns 'types:Error {

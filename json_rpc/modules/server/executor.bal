@@ -1,18 +1,17 @@
 import json_rpc.'types;
 import json_rpc.util;
 
-const SUCCESS = "success"; 
 
 # Executes the input function and fetches the oputput of the function
 #
 # + request - jrpc request message according to the jrpc specification (valid attributes)
 # + func - filtered method (output of the method filter function)
 # + return - Return jrpc response/error/nil  
-public isolated function executor('types:Request|'types:Notification request, isolated function ('types:Input func) returns any|error func) returns 'types:Response|error|null {
+isolated function execute('types:Request|'types:Notification request, isolated function ('types:InputParams func) returns any|error func) returns 'types:Response|error|() {
 
-    isolated function ('types:Input) returns any|error abstractFunction = func.clone();
+    isolated function ('types:InputParams) returns any|error abstractFunction = func.clone();
     anydata parameters = request.params;
-    'types:Input fetchedParameters;
+    'types:InputParams fetchedParameters;
 
     // check empty parameters
     if parameters === () {
@@ -43,7 +42,6 @@ public isolated function executor('types:Request|'types:Notification request, is
     if request is 'types:Request {
         return util:responseObject(request.id, res);
     } else {
-        return null;
+        return ();
     }
 }
-

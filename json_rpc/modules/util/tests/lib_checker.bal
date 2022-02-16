@@ -8,7 +8,7 @@ type Nip record {|
     int y;
 |};
 
-public isolated function addFunction(types:Input ifs) returns int|error{
+public isolated function addFunction(types:InputParams ifs) returns int|error{
   Nip nip = check ifs.cloneWithType();
   return nip.x + nip.y;
 }
@@ -68,58 +68,26 @@ public function startTesting() {
     io:println("Testing is starting...");
 }
 
-@test:Config{}
-public function testRequestIdentifierInvalidRequest() {
-    types:Identy requestIdentifierResult = requestIdentifier(str6);
-    test:assertEquals(<types:Error>requestIdentifierResult, res4, msg = "Testing has been failed");
-}
 
-@test:Config{}
-public function testRequestIdentifierParseError() {
-    types:Identy requestIdentifierResult = requestIdentifier(str4);
-    test:assertEquals(<types:Error>requestIdentifierResult, res1, msg = "Testing has been failed");
-}
-
-@test:Config{}
-public function testRequestIdentifierJsonType() {
-    types:Identy requestIdentifierResult = requestIdentifier(str2);
-    boolean result = false;
-
-    if requestIdentifierResult is json{
-        result = true;
-    }
-    test:assertTrue(result, msg = "Testing has been failed");
-}
-
-@test:Config{}
-public function testRequestIdentifierBatchType() {
-    types:Identy requestIdentifierResult = requestIdentifier(str3);
-    boolean result = false;
-
-    if requestIdentifierResult is any[]{
-        result = true;
-    }
-    test:assertTrue(result, msg = "Testing has been failed");
-}
 
 @test:Config{}
 public function testCheckerInvalidParameters() {
     json jsn = checkpanic value:fromJsonString(str60);
-    types:Error|types:Request|types:Notification|null checkerResult = checker(jsn);
+    types:Error|types:Request|types:Notification|null checkerResult = checkInput(jsn);
     test:assertEquals(<types:Error>checkerResult, res3, msg = "Testing has been failed");
 }
 
 @test:Config{}
 public function testCheckerInvalidTypeConversion() {
     json jsn = checkpanic value:fromJsonString(str60);
-    types:Error|types:Request|types:Notification|null checkerResult = checker(jsn);
+    types:Error|types:Request|types:Notification|null checkerResult = checkInput(jsn);
     test:assertEquals(<types:Error>checkerResult, res3, msg = "Testing has been failed");
 }
 
 @test:Config{}
 public function testCheckerInvalidNotificationParams() {
     json jsn = checkpanic value:fromJsonString(str8);
-    types:Error|types:Request|types:Notification|null checkerResult = checker(jsn);
+    types:Error|types:Request|types:Notification|null checkerResult = checkInput(jsn);
     test:assertEquals(checkerResult, null, msg = "Testing has been failed");
 }
 
@@ -127,7 +95,7 @@ public function testCheckerInvalidNotificationParams() {
 public function testCheckerNotification() {
     boolean result = false;
     json jsn = checkpanic value:fromJsonString(str5);
-    types:Error|types:Request|types:Notification|null checkerResult = checker(jsn);
+    types:Error|types:Request|types:Notification|null checkerResult = checkInput(jsn);
     if checkerResult is types:Notification{
         result = true;
     }
@@ -138,22 +106,17 @@ public function testCheckerNotification() {
 public function testCheckerRequest() {
     boolean result = false;
     json jsn = checkpanic value:fromJsonString(str);
-    types:Error|types:Request|types:Notification|null checkerResult = checker(jsn);
+    types:Error|types:Request|types:Notification|null checkerResult = checkInput(jsn);
     if checkerResult is types:Request{
         result = true;
     }
     test:assertTrue(result, msg = "Testing has been failed");
 }
 
-@test:Config{}
-public function callerExecuteFunction(){
-    types:Response|error|null executorResult = executor(r, addFunction);
-    test:assertEquals(executorResult, res5, msg = "Testing has been failed");
-}
 
 @test:Config{}
 public function testInvalidRequestInsideArray() {
-    types:Identy requestIdentifierResult = requestIdentifier(str9);
+    types:RequestType requestIdentifierResult = fetchRequest(str9);
     boolean result = false;
 
     if requestIdentifierResult is json[]{
@@ -165,61 +128,9 @@ public function testInvalidRequestInsideArray() {
 @test:Config{}
 public function testCheckerInvalidRequest() {
     boolean result = false;
-    types:Error|types:Request|types:Notification|null checkerResult = checker(1);
+    types:Error|types:Request|types:Notification|null checkerResult = checkInput(1);
     if checkerResult is types:Error{
         result = true;
     }
     test:assertTrue(result, msg = "Testing has been failed");
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// @test:Config{}
-// public function checkerTest() {
-//     validator:Error|validator:Request|null result = checker(str5);
-//     validator:Error|validator:Request|null result2 = checker(str2);
-//     validator:Error|validator:Request|null result3 = checker(str8);
-//     validator:Error|validator:Request|null result4 = checker(str60);
-//     validator:Error|validator:Request|null result5 = checker(str);
-
-//     test:assertEquals(result, res1, msg = "Testing has been failed");
-//     test:assertEquals(result2, res2, msg = "Testing has been failed");
-//     test:assertEquals(result3, null, msg = "Testing has been failed");
-//     test:assertEquals(result4, res3, msg = "Testing has been failed");
-//     test:assertEquals(result5, res4, msg = "Testing has been failed");
-// }
-
-// @test:Config{}
-// public function batchCheckerTest() {
-//     int result = batchChecker(str6);
-//     test:assertEquals(result, 0, msg = "Testing has been failed");
-
-//     int result2 = batchChecker(str);
-//     test:assertEquals(result2, 3, msg = "Testing has been failed");
-
-//     int result3 = batchChecker(str3);
-//     test:assertEquals(result3, 1, msg = "Testing has been failed");
-
-//     int result4 = batchChecker(str5);
-//     test:assertEquals(result4, 2, msg = "Testing has been failed");
-// }

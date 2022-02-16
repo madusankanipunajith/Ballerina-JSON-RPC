@@ -4,11 +4,10 @@ import json_rpc.'types;
 #
 # + message - Fetched single json message
 # + return - Return json rpc Request/Response/Error/Notification  
-public isolated function messageValidator(json message) returns 'types:JsonRPCTypes {
+public isolated function validate(json message) returns 'types:JsonRPCTypes {
     'types:JsonRecord|error jmessage = trap message.cloneWithType();
 
-    if jmessage is error {
-        
+    if jmessage is error {     
         json|error? errId = message.id;
         int? eid;
 
@@ -18,7 +17,7 @@ public isolated function messageValidator(json message) returns 'types:JsonRPCTy
             eid = null;
         }
 
-        return sendError(eid, {code: "-32600", message: "something went wrong in message conversion or Invalid request"});
+        return sendError(eid, {code: "-32600", message: "Invalid request"});
     } else {
         
         // notification message can have params but not compalsory
@@ -41,6 +40,6 @@ public isolated function messageValidator(json message) returns 'types:JsonRPCTy
         }
 
         //return error("cannot find a json rpc message type");
-        return sendError(jmessage?.id is null ? null : <int>jmessage?.id, {code: "-32600", message: "cannot find a json rpc message type (Invalid JSON object was recieved by the server)"});
+        return sendError(jmessage?.id is null ? null : <int>jmessage?.id, {code: "-32600", message: "Invalid request"});
     }
 }
