@@ -1,9 +1,6 @@
 import json_rpc.'types;
 import json_rpc.util;
 
-# User Input parameters in the server side functions  
-public type Input 'types:InputFunc|anydata[];
-
 # Json rpc service array
 public type JRPCSA JRPCService[];
 
@@ -38,13 +35,22 @@ public class JRPCService {
 
 # Server class
 public class Server {
-    private JRPCSA jrpcsa = [];
+    private JRPCSA jrpcsa = []; // define an array of services
+    private JRPCService jrpcservice = new(); // define a single service
+    private boolean single; // identifier to find weather it is a single service or not
 
     # Constructor
     #
     # + services - User initialized service/services
-    public isolated function init(JRPCSA services) {
-        self.jrpcsa = services;
+    public isolated function init(JRPCSA|JRPCService services) {
+        if services is JRPCSA {
+            self.jrpcsa = services; 
+            self.single = false;   
+        }else {
+            self.jrpcservice = services;
+            self.single = true;
+        }
+        
     }
 
     # Executes the request message and returns the response message
@@ -134,10 +140,11 @@ public class Server {
             return util:methodNotFoundError(message.id);
         }
 
-        if  execute(message, mf) is error{
+        types:Response|error|() executeResult = execute(message,mf);
+        if executeResult is error {
             return util:internalError(message.id);
-        }else {
-            return checkpanic execute(message, mf);
+        }else{
+            return executeResult;
         }
        
     }

@@ -7,11 +7,11 @@ import json_rpc.util;
 # + request - jrpc request message according to the jrpc specification (valid attributes)
 # + func - filtered method (output of the method filter function)
 # + return - Return jrpc response/error/nil  
-public isolated function execute('types:Request|'types:Notification request, isolated function ('types:Input func) returns any|error func) returns 'types:Response|error|() {
+isolated function execute('types:Request|'types:Notification request, isolated function ('types:InputParams func) returns any|error func) returns 'types:Response|error|() {
 
-    isolated function ('types:Input) returns any|error abstractFunction = func.clone();
+    isolated function ('types:InputParams) returns any|error abstractFunction = func.clone();
     anydata parameters = request.params;
-    'types:Input fetchedParameters;
+    'types:InputParams fetchedParameters;
 
     // check empty parameters
     if parameters === () {

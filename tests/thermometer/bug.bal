@@ -10,6 +10,7 @@ type Nip record {|
 public function main() {
     name({"x":10, "y":20});
     name2({"x":100, "y":200});
+
 }
 
 function name(InputFunc ifs) {
@@ -28,4 +29,8 @@ function name2(InputFunc ifs) {
     Nip nip = checkpanic ifs.cloneWithType();
     int answer = nip.x + nip.y;
     io:println(answer);
+}
+
+function name3(InputFunc ifs) {
+    
 }

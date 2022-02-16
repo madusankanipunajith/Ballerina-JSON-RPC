@@ -8,7 +8,7 @@ type Nip record {|
     int y;
 |};
 
-public isolated function addFunction(types:Input ifs) returns int|error{
+public isolated function addFunction(types:InputParams ifs) returns int|error{
   Nip nip = check ifs.cloneWithType();
   return nip.x + nip.y;
 }

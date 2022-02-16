@@ -72,17 +72,17 @@ class Calculator {
 isolated class CalcMethods {
     *server:JRPCMethods;
 
-    isolated function addFunction(server:Input ifs) returns int|error {
+    isolated function addFunction(types:InputParams ifs) returns int|error {
         Nip nip = check ifs.cloneWithType();
         return nip.x + nip.y;
     }
 
-    isolated function subFunction(server:Input ifs) returns int|error {
+    isolated function subFunction(types:InputParams ifs) returns int|error {
         Nip nip = check ifs.cloneWithType();
         return nip.x - nip.y;
     }
 
-    isolated function divFunction(server:Input ifs) returns float|error{
+    isolated function divFunction(types:InputParams ifs) returns float|error{
         Nip nip = check ifs.cloneWithType();
         return <float>nip.x/<float>nip.y;
     }
