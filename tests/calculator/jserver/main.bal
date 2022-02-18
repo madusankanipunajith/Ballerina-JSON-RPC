@@ -47,7 +47,7 @@ class CTServer {
 
     server:Server serv;
     function init() {
-        self.serv = new ([new Calculator()]);
+        self.serv = new (new Calculator());
     }
 
     public isolated function sendResponse(string request) returns any {
