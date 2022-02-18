@@ -6,17 +6,6 @@ import json_rpc.util;
 import ballerina/udp;
 import ballerina/websocket;
 
-# Parameter type of batch methods (sendBatchRequest, sendBatchNotification)
-#
-# + notification - Boolean attribute which is used to identify message is request or notification  
-# + method - Define the method of the message   
-# + params - Define the parameters of the message
-public type BatchInput record {|
-    boolean notification = false;
-    string method;
-    anydata params;
-|};
-
 # Private types and methods 
 type BatchJRPCOutput 'types:JsonRPCTypes?[];
 
@@ -220,14 +209,14 @@ public class ClientService {
     #
     # + message - array of BatchInput data types(Request/Notification)  
     # + callback - This function returns a response(Batch/Error) for particular sent request batch. 
-    public function sendRequestBatch(BatchInput[] message, function (types:BatchJRPCOutput|types:Error response) callback) {
+    public function sendRequestBatch(types:BatchInput[] message, function (types:BatchJRPCOutput|types:Error response) callback) {
         return;
     }
 
     # Client can send a batch(collection) of Notification messages to the server
     #
     # + message - array of BatchInput data types
-    public function sendNotificationBatch(BatchInput[] message) {
+    public function sendNotificationBatch(types:BatchInput[] message) {
         return;
     }
 
@@ -315,7 +304,7 @@ public class WSClient {
     # Emplimentation of the sendNotificationBatch method
     #
     # + message - array of BatchInput data types
-    public function sendNotificationBatch(BatchInput[] message) {
+    public function sendNotificationBatch(types:BatchInput[] message) {
         string jsonMessage = createBatchNotification(message).toJsonString();
         byte[] msgByteArray = jsonMessage.toBytes();
         checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
@@ -346,10 +335,10 @@ public class WSClient {
     #
     # + message - array of BatchInput data types  
     # + callback - This function returns the response for particular sent request batch asynchronously. 
-    public function sendRequestBatch(BatchInput[] message, function (types:BatchJRPCOutput|types:Error response) returns () callback) {
+    public function sendRequestBatch(types:BatchInput[] message, function (types:BatchJRPCOutput|types:Error response) returns () callback) {
         types:JsonRPCTypes[] request = [];
         int[] ids = [];
-        foreach BatchInput item in message {
+        foreach types:BatchInput item in message {
             if item.notification {
                 request.push(util:sendNotification(item.method, item.params));
             } else {
@@ -402,7 +391,7 @@ public class TCPClient {
         checkpanic self.tcpClient->writeBytes(msgByteArray);
     }
 
-    public function sendNotificationBatch(BatchInput[] message) {
+    public function sendNotificationBatch(types:BatchInput[] message) {
         string jsonMessage = createBatchNotification(message).toJsonString();
         byte[] msgByteArray = jsonMessage.toBytes();
         checkpanic self.tcpClient->writeBytes(msgByteArray);
@@ -425,7 +414,7 @@ public class TCPClient {
         }
     }
 
-    public function sendRequestBatch(BatchInput[] message, function (types:BatchJRPCOutput|types:Error response) returns () callback) {
+    public function sendRequestBatch(types:BatchInput[] message, function (types:BatchJRPCOutput|types:Error response) returns () callback) {
         string jsonMessage = createBatchRequest(message, self.store).toString();
         byte[] msgByteArray = jsonMessage.toBytes();
         checkpanic self.tcpClient->writeBytes(msgByteArray);
@@ -506,7 +495,7 @@ public class UDPClient {
         checkpanic self.udpClient->writeBytes(msgByteArray);
     }
 
-    public function sendNotificationBatch(BatchInput[] message) {
+    public function sendNotificationBatch(types:BatchInput[] message) {
         string jsonMessage = createBatchNotification(message).toJsonString();
         byte[] msgByteArray = jsonMessage.toBytes();
         checkpanic self.udpClient->writeBytes(msgByteArray);
@@ -528,10 +517,10 @@ public class UDPClient {
         }
     }
 
-    public function sendRequestBatch(BatchInput[] message, function (types:BatchJRPCOutput|types:Error response) returns () callback) {
+    public function sendRequestBatch(types:BatchInput[] message, function (types:BatchJRPCOutput|types:Error response) returns () callback) {
         types:JsonRPCTypes[] request = [];
         int[] ids = [];
-        foreach BatchInput item in message {
+        foreach types:BatchInput item in message {
             if item.notification {
                 request.push(util:sendNotification(item.method, item.params));
             } else {

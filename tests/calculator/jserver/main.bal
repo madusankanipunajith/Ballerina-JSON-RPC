@@ -116,13 +116,13 @@ class Thermometer {
 isolated class TherMethods {
     *server:JRPCMethods;
 
-    isolated function convirtFunction(server:Input ifs) returns error|float {
+    isolated function convirtFunction(types:InputParams ifs) returns error|float {
         Temp temp = check ifs.cloneWithType();
         float ans = (temp.z * 9 / 5) + 32;
         return ans;
     }
 
-    isolated function printFunction(server:Input ifs) {
+    isolated function printFunction(types:InputParams ifs) {
         Temp temp = checkpanic ifs.cloneWithType();
         io:println("Hello madusanka : ", temp.z);
     }

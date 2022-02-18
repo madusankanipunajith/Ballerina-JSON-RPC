@@ -7,18 +7,34 @@ public type JsonRecord record {|
     json err?;
 |};
 
+# Description
+#
+# + id - Field Description  
+# + result - Field Description  
+# + jsonrpc - Field Description
 public type Response record {|
     int id;
     anydata result;
-    string jsonrpc;
+    string jsonrpc = "2.0";
 |};
 
+# Description
+#
+# + id - Field Description  
+# + err - Field Description  
+# + jsonrpc - Field Description
 public type Error record {|
     int? id;
     json err;
-    string jsonrpc;
+    string jsonrpc = "2.0";
 |};
 
+# Description
+#
+# + id - Field Description   
+# + method - Field Description  
+# + params - Field Description  
+# + jsonrpc - Field Description
 public type Request record {
     int id;
     string method;
@@ -26,6 +42,11 @@ public type Request record {
     string jsonrpc = "2.0";
 };
 
+# Description
+#
+# + method - Field Description  
+# + params - Field Description  
+# + jsonrpc - Field Description
 public type Notification record {
     string method;
     anydata params;
@@ -66,3 +87,13 @@ public type WSConfig record {|
     string path = "";
 |};
 
+# Parameter type of batch methods (sendBatchRequest, sendBatchNotification)
+#
+# + notification - Boolean attribute which is used to identify message is request or notification  
+# + method - Define the method of the message   
+# + params - Define the parameters of the message
+public type BatchInput record {|
+    boolean notification = false;
+    string method;
+    anydata params;
+|};

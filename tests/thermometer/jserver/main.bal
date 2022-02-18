@@ -47,10 +47,9 @@ isolated class TherMethods {
         return ans;
     }
 
-    isolated function printFunction(types:InputParams ifs) returns error|(){
+    isolated function printFunction(types:InputParams ifs) returns error?{
         Temp2 temp2 = check ifs.cloneWithType();
         io:println("Hello madusanka : ", temp2.z);
-        return(); 
     }
 
     public isolated function getMethods() returns types:Methods {
