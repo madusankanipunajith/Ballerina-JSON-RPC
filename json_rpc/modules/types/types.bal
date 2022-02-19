@@ -53,7 +53,7 @@ public type Notification record {
     string jsonrpc = "2.0";
 };
 
-public type JsonRPCTypes Request|Response|Error|Notification;
+public type JRPCTypes Request|Response|Error|Notification;
 
 public type InputParams json|anydata[];
 
@@ -65,27 +65,11 @@ public type Methods record {|
     isolated function (InputParams) returns any|error...;
 |};
 
-public type JRPCResponse Response|Error|JsonRPCTypes?[]|();
+public type JRPCResponse Response|Error|JRPCTypes?[]|();
 
-public type BatchJRPCOutput JsonRPCTypes?[];
+public type BatchJRPCOutput JRPCTypes?[];
 
 public type SingleJRPCOutput Response|Error;
-
-public type TCPConfig record {|
-    string tcpRemoteHost;
-    int tcpRemotePort;
-|};
-
-public type UDPConfig record {|
-    string udpRemoteHost;
-    int udpRemotePort;
-|};
-
-public type WSConfig record {|
-    string wsRemoteHost;
-    int wsRemotePort;
-    string path = "";
-|};
 
 # Parameter type of batch methods (sendBatchRequest, sendBatchNotification)
 #

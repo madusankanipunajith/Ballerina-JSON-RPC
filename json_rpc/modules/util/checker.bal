@@ -6,7 +6,7 @@ import json_rpc.'types;
 # + return - Return valid error/request/notification  
 public isolated function checkInput(json message) returns 'types:Error|'types:Request|'types:Notification|null {
     // convirt the json message into necessary jrpc data type (unmarshalling process)
-    'types:JsonRPCTypes result = validate(message);
+    'types:JRPCTypes result = validate(message);
 
     if result is 'types:Error {
         return result;

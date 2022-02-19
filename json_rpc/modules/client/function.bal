@@ -18,7 +18,7 @@ function fetchResponse(string response) returns types:JRPCResponse {
             return bjo;
         }
     } else if fetchMessage is json {
-        types:JsonRPCTypes result = util:validate(fetchMessage);
+        types:JRPCTypes result = util:validate(fetchMessage);
         types:Response|types:Error convirtedResponse = <types:Response|types:Error>result;
         return convirtedResponse;
     } else {
@@ -27,8 +27,8 @@ function fetchResponse(string response) returns types:JRPCResponse {
 }
 
 // Internal function which are used inside the client module
-function createBatchRequest(types:BatchInput[] batch, Store store) returns types:JsonRPCTypes[] {
-    types:JsonRPCTypes[] request = [];
+function createBatchRequest(types:BatchInput[] batch, Store store) returns types:JRPCTypes[] {
+    types:JRPCTypes[] request = [];
 
     foreach types:BatchInput item in batch {
         if item.notification {
@@ -43,8 +43,8 @@ function createBatchRequest(types:BatchInput[] batch, Store store) returns types
 }
 
 // Internal function which are used inside the client module
-function createBatchNotification(types:BatchInput[] batch) returns types:JsonRPCTypes[] {
-    types:JsonRPCTypes[] notification = [];
+function createBatchNotification(types:BatchInput[] batch) returns types:JRPCTypes[] {
+    types:JRPCTypes[] notification = [];
     foreach types:BatchInput item in batch {
         notification.push(util:sendNotification(item.method, item.params));
     }

@@ -7,7 +7,7 @@ import ballerina/udp;
 import ballerina/websocket;
 
 # Private types and methods 
-type BatchJRPCOutput 'types:JsonRPCTypes?[];
+type BatchJRPCOutput 'types:JRPCTypes?[];
 
 type SingleJRPCOutput types:Response|types:Error;
 
@@ -97,7 +97,7 @@ class Store {
                 BatchJRPCOutput[] batchStore = self.getBatchStore();
                 foreach BatchJRPCOutput item in batchStore {
                     foreach int i in id {
-                        foreach types:JsonRPCTypes? j in item {
+                        foreach types:JRPCTypes? j in item {
                             if j is types:Response || j is types:Error {
                                 if j.id === i {
                                     return item;
@@ -336,7 +336,7 @@ public class WSClient {
     # + message - array of BatchInput data types  
     # + callback - This function returns the response for particular sent request batch asynchronously. 
     public function sendRequestBatch(types:BatchInput[] message, function (types:BatchJRPCOutput|types:Error response) returns () callback) {
-        types:JsonRPCTypes[] request = [];
+        types:JRPCTypes[] request = [];
         int[] ids = [];
         foreach types:BatchInput item in message {
             if item.notification {
@@ -518,7 +518,7 @@ public class UDPClient {
     }
 
     public function sendRequestBatch(types:BatchInput[] message, function (types:BatchJRPCOutput|types:Error response) returns () callback) {
-        types:JsonRPCTypes[] request = [];
+        types:JRPCTypes[] request = [];
         int[] ids = [];
         foreach types:BatchInput item in message {
             if item.notification {

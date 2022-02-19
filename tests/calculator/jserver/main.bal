@@ -29,10 +29,8 @@ service class WsService {
             thread: "any"
         }
         worker T {
-            string input = checkpanic string:fromBytes(data);
             lock {
-                io:println("output: ", calculatorServer.sendResponse(input));
-                return checkpanic caller->writeBinaryMessage(calculatorServer.sendResponse(input).toString().toBytes());
+                calculatorServer.send(caller, data);
             }
         }
     }
@@ -50,8 +48,8 @@ class CTServer {
         self.serv = new (new Calculator());
     }
 
-    public isolated function sendResponse(string request) returns any {
-        return self.serv.runner(request);
+    public isolated function send(websocket:Caller caller, byte[] message) {
+        return self.serv.sendResponse(caller, message);
     }
 }
 
