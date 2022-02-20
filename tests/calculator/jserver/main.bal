@@ -29,9 +29,7 @@ service class WsService {
             thread: "any"
         }
         worker T {
-            lock {
-                calculatorServer.send(caller, data);
-            }
+            calculatorServer.send(caller, data);
         }
     }
 
