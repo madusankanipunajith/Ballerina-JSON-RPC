@@ -50,13 +50,6 @@ import json_rpc.types;
 
 
 
-
-
-
-
-
-
-
 public function main() {
     CalculatorClient calc = new("localhost",3000);
     calc.starts();
@@ -109,3 +102,5 @@ class CalculatorClient {
         });
     }
 }
+
+

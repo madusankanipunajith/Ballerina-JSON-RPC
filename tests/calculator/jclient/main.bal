@@ -3,51 +3,39 @@ import ballerina/io;
 import asus/json_rpc.types;
 
 public function main() {
-    'client:WSClient wsClient = new("localhost",3000);
-    wsClient.register();
+    types:WSConfig wc ={
+        wsRemoteHost: "localhost",
+        wsRemotePort: 3000
+    };
 
-    wsClient.sendRequest("add", {"x":100, "y": 80}, function (types:Response|types:Error u) returns () {
-        io:println("1 : ", u);
-    });
-
-    wsClient.sendRequest("sub", {"x":100, "y": 80}, function (types:Response|types:Error u) returns () {
-        io:println("2 : ", u);
-    });
+    'client:Client cl = new(wc);
+    cl.register();
+    Calculator calculator = <Calculator>cl.getService(new Calculator());
     
-    wsClient.sendRequest("sub", 100, function (types:Response|types:Error u) returns () {
-        io:println("3 : ", u);
-    });
+    calculator.add({"x":100, "y":30});
+    calculator.sub(100);
+    calculator.add(2090);
+    calculator.sub({"x":460,"y":60});
 
+    cl.close();
+}
 
-    wsClient.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}}],function (types:BatchJRPCOutput|types:Error u) returns () {
-        io:println("4 : ", u);
-    });
-    
-    wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function (types:BatchJRPCOutput|types:Error u) returns () {
-        io:println("5 : ", u);
-    });
+class Calculator {
+    *'client:JRPCService;
 
-    wsClient.sendRequestBatch([{method: "sub", params: {"x":100, "yz": 80}}],function (types:BatchJRPCOutput|types:Error u) returns () {
-        io:println("6 : ", u);
-    });
-    
-    wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function (types:BatchJRPCOutput|types:Error u) returns () {
-        io:println("7 : ", u);
-    });
+    function init() {
+        self.clientService = new();
+    }
 
-    wsClient.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}},{method: "sub", params: {"x":100, "y": 80}}],function (types:BatchJRPCOutput|types:Error u) returns () {
-        io:println("8 : ", u);
-    });
-    
-    wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function (types:BatchJRPCOutput|types:Error u) returns () {
-        io:println("9 : ", u);
-    });
-    
-    // wsClient.sendRequestBatch([],function (types:BatchJRPCOutput|types:Error u) returns () {
-    //     io:println("6 : ", u);
-    // });
+    public function add(anydata params) {
+        self.clientService.sendRequest("add", params, function (types:Response|types:Error u) returns () {
+            io:println(u);
+        });
+    }
 
-
-    wsClient.closeClient();   
-    
+    public function sub(anydata params) {
+        self.clientService.sendRequest("sub", params, function (types:Response|types:Error u) returns () {
+           io:println(u); 
+        });
+    }
 }

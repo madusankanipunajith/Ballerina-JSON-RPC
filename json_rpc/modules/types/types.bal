@@ -7,34 +7,34 @@ public type JsonRecord record {|
     json err?;
 |};
 
-# Description
+# structure of Json rpc response message
 #
-# + id - Field Description  
-# + result - Field Description  
-# + jsonrpc - Field Description
+# + id - unique id  
+# + result - stores the output of the request message's execution  
+# + jsonrpc - 2.0 version
 public type Response record {|
     int id;
     anydata result;
     string jsonrpc = "2.0";
 |};
 
-# Description
+# structure of Json rpc error message
 #
-# + id - Field Description  
-# + err - Field Description  
-# + jsonrpc - Field Description
+# + id - unique id and could be null  
+# + err - error message  
+# + jsonrpc - 2.0 version
 public type Error record {|
     int? id;
     json err;
     string jsonrpc = "2.0";
 |};
 
-# Description
+# structure of Json rpc request message
 #
-# + id - Field Description   
-# + method - Field Description  
-# + params - Field Description  
-# + jsonrpc - Field Description
+# + id - unique id   
+# + method - method's name  
+# + params - parameters and could be json or any[]  
+# + jsonrpc - 2.0 version
 public type Request record {
     int id;
     string method;
@@ -42,11 +42,11 @@ public type Request record {
     string jsonrpc = "2.0";
 };
 
-# Description
+# structure of Json rpc notification message
 #
-# + method - Field Description  
-# + params - Field Description  
-# + jsonrpc - Field Description
+# + method - method's name  
+# + params - parameters and could be json or any[]  
+# + jsonrpc - 2.0 version
 public type Notification record {
     string method;
     anydata params;
@@ -80,4 +80,31 @@ public type BatchInput record {|
     boolean notification = false;
     string method;
     anydata params;
+|};
+
+# Configuration of the tcp protocol
+#
+# + tcpRemoteHost - remote host (localhost) 
+# + tcpRemotePort - remote port
+public type TCPConfig record {|
+    string tcpRemoteHost;
+    int tcpRemotePort;
+|};
+
+# Configuration of the udp protocol
+#
+# + udpRemoteHost - remote host (localhost) 
+# + udpRemotePort - remote port
+public type UDPConfig record {|
+    string udpRemoteHost;
+    int udpRemotePort;
+|};
+
+# Configuration of the udp protocol
+#
+# + wsRemoteHost - remote host (localhost)  
+# + wsRemotePort - remote port
+public type WSConfig record {|
+    string wsRemoteHost;
+    int wsRemotePort;
 |};
