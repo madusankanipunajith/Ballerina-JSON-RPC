@@ -18,8 +18,7 @@ service on new udp:Listener(8080) {
         io:println("Received by listener: ", string:fromBytes(datagram.data));
 
             server:Server termoServer = new([new Thermometer()]);
-            string input = checkpanic string:fromBytes(datagram.data);
-            return checkpanic caller->sendBytes(termoServer.runner(input).toString().toBytes());
+            return termoServer.sendResponse(caller,datagram.data);
          
     }
 }
@@ -47,10 +46,9 @@ isolated class TherMethods {
         return ans;
     }
 
-    isolated function printFunction(types:InputParams ifs) returns error|(){
+    isolated function printFunction(types:InputParams ifs) returns error?{
         Temp2 temp2 = check ifs.cloneWithType();
         io:println("Hello madusanka : ", temp2.z);
-        return(); 
     }
 
     public isolated function getMethods() returns types:Methods {

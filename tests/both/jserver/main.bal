@@ -43,7 +43,7 @@ class CTServer {
 
     server:Server serv;
     function init() {
-        self.serv = new (new Calculator());
+        self.serv = new ([new Calculator(),new Thermometer()]);
     }
 
     public isolated function send(websocket:Caller caller, byte[] message) {
