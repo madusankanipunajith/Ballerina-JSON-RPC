@@ -8,16 +8,15 @@ dependencies-toml-version = "2"
 
 [[package]]
 org = "asus"
-name = "jserver"
+name = "jclient_v"
 version = "0.1.0"
 dependencies = [
 	{org = "asus", name = "json_rpc"},
 	{org = "ballerina", name = "io"},
-	{org = "ballerina", name = "websocket"},
 	{org = "ballerinai", name = "observe"}
 ]
 modules = [
-	{org = "asus", packageName = "jserver", moduleName = "jserver"}
+	{org = "asus", packageName = "jclient_v", moduleName = "jclient_v"}
 ]
 
 [[package]]
@@ -325,9 +324,6 @@ dependencies = [
 	{org = "ballerina", name = "oauth2"},
 	{org = "ballerina", name = "regex"},
 	{org = "ballerina", name = "time"}
-]
-modules = [
-	{org = "ballerina", packageName = "websocket", moduleName = "websocket"}
 ]
 
 [[package]]
