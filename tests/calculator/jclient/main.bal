@@ -28,13 +28,13 @@ class Calculator {
     }
 
     public function add(anydata params) {
-        self.clientService.sendRequest("add", params, function (types:Response|types:Error u) returns () {
+        self.clientService.sendRequest("add", params, function (types:Response|types:Error? u) returns () {
             io:println(u);
         });
     }
 
     public function sub(anydata params) {
-        self.clientService.sendRequest("sub", params, function (types:Response|types:Error u) returns () {
+        self.clientService.sendRequest("sub", params, function (types:Response|types:Error? u) returns () {
            io:println(u); 
         });
     }
