@@ -6,11 +6,10 @@ import json_rpc.util;
 import ballerina/udp;
 import ballerina/websocket;
 
-# Private types and methods 
+# Private types and enums 
 type BatchJRPCOutput 'types:JRPCTypes?[];
 
 type SingleJRPCOutput types:Response|types:Error;
-
 # This private class is used to manage central store
 class Store {
     int id = 0;
@@ -185,6 +184,17 @@ class Store {
     }
 }
 
+# Abstract class for the service class
+#
+# + clientService - User should initialize an instance of the ClientService class inside this class
+public class JRPCService {
+    public ClientService clientService;
+
+    public function init() {
+        self.clientService = new();
+    }
+}
+
 # All the client services are defined here 
 public class ClientService {
 
@@ -220,10 +230,6 @@ public class ClientService {
         return;
     }
 
-    # Client can close the defined client from the server
-    public function closeClient() {
-        return;
-    }
 }
 # Create a client using WS protocol (working asynchronously)
 public class WSClient {
@@ -429,6 +435,7 @@ public class TCPClient {
             callback(fetchResponseResult);
         }
     }
+
 }
 
 public class UDPClient {
@@ -546,4 +553,54 @@ public class UDPClient {
     }
 }
 
+public class Client {
+    private TCPClient tcpClient;
+    private UDPClient udpClient;
+    private WSClient wsClient;
+    private ClientService clientServie = new();
+
+    public function init(util:Config config) {
+        if config is types:TCPConfig {
+            self.tcpClient = new(config.tcpRemoteHost,config.tcpRemotePort);
+            self.clientServie = self.tcpClient;
+        }else if config is types:UDPConfig {
+            self.udpClient = new(config.udpRemoteHost,config.udpRemotePort);
+            self.clientServie = self.udpClient;
+        }else {
+            self.wsClient = new(config.wsRemoteHost,config.wsRemotePort);
+            self.clientServie = self.wsClient;
+        }
+    }
+
+    public function register() {
+        if self.clientServie is WSClient {
+            self.wsClient = <WSClient> self.clientServie;
+            self.wsClient.register();
+        }else if self.clientServie is UDPClient {
+            self.udpClient = <UDPClient> self.clientServie;
+            self.udpClient.register();
+        }else {
+            log:printWarn("TCP client works synchronusly");
+        }
+
+    }
+
+    public function close() {
+        if self.clientServie is WSClient {
+            self.wsClient = <WSClient> self.clientServie;
+            self.wsClient.closeClient();
+        }else if self.clientServie is UDPClient {
+            self.udpClient = <UDPClient> self.clientServie;
+            self.udpClient.closeClient();
+        }else {
+            self.tcpClient = <TCPClient> self.clientServie;
+            self.tcpClient.closeClient();
+        }
+    }
+
+    public function getService(JRPCService jrpcs) returns JRPCService{
+        jrpcs.clientService = self.clientServie;
+        return jrpcs;
+    }
+}
 
