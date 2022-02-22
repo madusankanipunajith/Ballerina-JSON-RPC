@@ -58,7 +58,7 @@ class Store {
         }
     }
 
-    public function findResponse(int id) returns types:Error|types:Response {
+    public function findResponse(int id) returns types:Response|types:Error? {
         time:Utc currentUtc = time:utcNow();
         int strats = currentUtc[0];
         int end = strats + 10;
@@ -76,16 +76,10 @@ class Store {
         }
 
         log:printError(NOT_RECIEVED, 'error = error(self.removeRequest(id).toString()));
-
-        types:Error e = {
-            id: id,
-            err: {message: "Time out"},
-            jsonrpc: "2.0"
-        };
-        return e;
+        return ();
     }
 
-    public function findBatch(int[] id) returns BatchJRPCOutput|types:Error {
+    public function findBatch(int[] id) returns BatchJRPCOutput|types:Error? {
         time:Utc currentUtc = time:utcNow();
         int strats = currentUtc[0];
         int end = strats + 10;
@@ -115,13 +109,8 @@ class Store {
         } else {
             log:printError(NOT_RECIEVED, 'error = error(EMPTY_MESSAGE));
         }
-
-        types:Error e = {
-            id: 404,
-            err: {message: "Time out"},
-            jsonrpc: "2.0"
-        };
-        return e;
+        
+        return ();
     }
 
     public function removeRequest(int|int[] id) returns types:Request|() {
@@ -203,7 +192,7 @@ public class ClientService {
     # + method - Define the method of the message   
     # + params - Define the parameters of the message   
     # + callback - Define a callback function which returns an output(response or error) for the particular sent Request. 
-    public function sendRequest(string method, anydata params, function (types:Response|types:Error response) callback) {
+    public function sendRequest(string method, anydata params, function (types:Response|types:Error? response) callback) {
         return;
     }
 
@@ -219,7 +208,7 @@ public class ClientService {
     #
     # + message - array of BatchInput data types(Request/Notification)  
     # + callback - This function returns a response(Batch/Error) for particular sent request batch. 
-    public function sendRequestBatch(types:BatchInput[] message, function (types:BatchJRPCOutput|types:Error response) callback) {
+    public function sendRequestBatch(types:BatchInput[] message, function (types:BatchJRPCOutput|types:Error? response) callback) {
         return;
     }
 
@@ -321,7 +310,7 @@ public class WSClient {
     # + method - Define the method of the message   
     # + params - Define the parameters of the message   
     # + callback - Define a callback function which returns the output for particular sent Request asynchronously.
-    public function sendRequest(string method, anydata params, function (types:Response|types:Error response) returns () callback) {
+    public function sendRequest(string method, anydata params, function (types:Response|types:Error? response) returns () callback) {
         int id = self.store.genarateId();
         self.store.pushRequest(util:sendRequest(id, method, params));
         string jsonMessage = util:sendRequest(id, method, params).toJsonString();
@@ -329,8 +318,8 @@ public class WSClient {
         checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
 
         worker B {
-            future<types:Error|types:Response> futureResult = start self.store.findResponse(id);
-            types:Error|types:Response unionResult = checkpanic wait futureResult;
+            future<types:Error?|types:Response> futureResult = start self.store.findResponse(id);
+            types:Error?|types:Response unionResult = checkpanic wait futureResult;
             self.store.removeResponse(id);
             callback(unionResult);
             _ = self.store.removeRequest(id);
@@ -341,7 +330,7 @@ public class WSClient {
     #
     # + message - array of BatchInput data types  
     # + callback - This function returns the response for particular sent request batch asynchronously. 
-    public function sendRequestBatch(types:BatchInput[] message, function (types:BatchJRPCOutput|types:Error response) returns () callback) {
+    public function sendRequestBatch(types:BatchInput[] message, function (types:BatchJRPCOutput|types:Error? response) returns () callback) {
         types:JRPCTypes[] request = [];
         int[] ids = [];
         foreach types:BatchInput item in message {
@@ -361,8 +350,8 @@ public class WSClient {
         checkpanic self.wsClient->writeBinaryMessage(msgByteArray);
 
         worker B {
-            future<BatchJRPCOutput|types:Error> futureResult = start self.store.findBatch(ids);
-            BatchJRPCOutput|types:Error unionResult = checkpanic wait futureResult;
+            future<BatchJRPCOutput|types:Error?> futureResult = start self.store.findBatch(ids);
+            BatchJRPCOutput|types:Error? unionResult = checkpanic wait futureResult;
             self.store.removeResponse(ids);
             callback(unionResult);
             _ = self.store.removeRequest(ids);
@@ -508,7 +497,7 @@ public class UDPClient {
         checkpanic self.udpClient->writeBytes(msgByteArray);
     }
 
-    public function sendRequest(string method, anydata params, function (types:Response|types:Error response) returns () callback) {
+    public function sendRequest(string method, anydata params, function (types:Response|types:Error? response) returns () callback) {
         int id = self.store.genarateId();
         self.store.pushRequest(util:sendRequest(id,method,params));
         string jsonMessage = util:sendRequest(id,method,params).toJsonString();
@@ -516,15 +505,15 @@ public class UDPClient {
         checkpanic self.udpClient->writeBytes(msgByteArray);
 
         worker B {
-            future<types:Error|types:Response> futureResult = start self.store.findResponse(id);
-            types:Error|types:Response unionResult = checkpanic wait futureResult;
+            future<types:Error?|types:Response> futureResult = start self.store.findResponse(id);
+            types:Error?|types:Response unionResult = checkpanic wait futureResult;
             self.store.removeResponse(id);
             callback(unionResult);
             _ = self.store.removeRequest(id);
         }
     }
 
-    public function sendRequestBatch(types:BatchInput[] message, function (types:BatchJRPCOutput|types:Error response) returns () callback) {
+    public function sendRequestBatch(types:BatchInput[] message, function (types:BatchJRPCOutput|types:Error? response) returns () callback) {
         types:JRPCTypes[] request = [];
         int[] ids = [];
         foreach types:BatchInput item in message {
@@ -544,8 +533,8 @@ public class UDPClient {
         checkpanic self.udpClient->writeBytes(msgByteArray);
 
         worker B {
-            future<BatchJRPCOutput|types:Error> futureResult = start self.store.findBatch(ids);
-            BatchJRPCOutput|types:Error unionResult = checkpanic wait futureResult;
+            future<BatchJRPCOutput|types:Error?> futureResult = start self.store.findBatch(ids);
+            BatchJRPCOutput|types:Error? unionResult = checkpanic wait futureResult;
             self.store.removeResponse(ids);
             callback(unionResult);
             _ = self.store.removeRequest(ids);
