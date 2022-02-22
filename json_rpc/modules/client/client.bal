@@ -6,9 +6,10 @@ import json_rpc.util;
 import ballerina/udp;
 import ballerina/websocket;
 
-# Private types and enums 
+# Private types
 type BatchJRPCOutput 'types:JRPCTypes?[];
 
+# Private types
 type SingleJRPCOutput types:Response|types:Error;
 # This private class is used to manage central store
 class Store {
@@ -427,6 +428,7 @@ public class TCPClient {
 
 }
 
+# Create a client using UDP protocol (working asynchronously)
 public class UDPClient {
     *ClientService;
 
@@ -542,6 +544,7 @@ public class UDPClient {
     }
 }
 
+# Client wrapper
 public class Client {
     private TCPClient tcpClient;
     private UDPClient udpClient;

@@ -59,10 +59,10 @@ public type InputParams json|anydata[];
 
 public type RequestType json|any[]|Error;
 
-public type Method isolated function (InputParams) returns any|error;
+public type Method  function (InputParams) returns any|error;
 
 public type Methods record {|
-    isolated function (InputParams) returns any|error...;
+    function (InputParams) returns any|error...;
 |};
 
 public type JRPCResponse Response|Error|JRPCTypes?[]|();
