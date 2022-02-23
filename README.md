@@ -66,14 +66,22 @@ You will get more understanding about these classes given by the library when yo
   
 ### High-level components of the library (client and server)
 
+ ![two_library](https://user-images.githubusercontent.com/56679833/155278472-ee8ac780-22c5-41c5-b86c-9d41bc3734ac.jpg)
+ 
+ ![three_library](https://user-images.githubusercontent.com/56679833/155278508-7422c516-3330-4eb0-a3a6-4c35dc83ef59.jpg)
+
+
 ### Workflow diagrams (client and server)
 
  This is the high-level workflow diagram for the client and server.
 
  **Client**
- 
- **Server**
+ ![Untitled Workspace (1)](https://user-images.githubusercontent.com/56679833/155278546-2203ed64-71ba-4bc0-acd5-71f8983a304d.jpg)
 
+ **Server**
+ ![Untitled Workspace](https://user-images.githubusercontent.com/56679833/155278586-97e4eb2d-1fd9-4d5e-ab09-5d6ea89be746.jpg)
+
+ 
 ### Implementing a client by using the library. 
 
 We can create 3 types of clients by using this library. They are TCP client, UDP client, and WebSocket client. UDP and WebSocket clients have been implemented as asynchronous clients but TCP behaves synchronously. Here, we will show how to create a library level (lower level) client and a secondary level client (using a wrapper). 
