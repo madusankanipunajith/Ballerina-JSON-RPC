@@ -64,6 +64,98 @@ register: This method is available only when a user creates a client using WS or
 - ```Client <class>:``` This is the wrapper of TCP, UDP, and WS clients given by the library. The constructor of this class is a protocol’s configured data type. According to the protocol config types the user has given, a specific client will be created. Furthermore,  When a user wants to define more services instead of a single service, this class will be helpful. 
 You will get more understanding about these classes given by the library when you are moving to the demo part. 
   
+### High-level components of the library (client and server)
 
+### Workflow diagrams (client and server)
 
+ This is the high-level workflow diagram for the client and server.
+
+ **Client**
+ 
+ **Server**
+
+### Implementing a client by using the library. 
+
+We can create 3 types of clients by using this library. They are TCP client, UDP client, and WebSocket client. UDP and WebSocket clients have been implemented as asynchronous clients but TCP behaves synchronously. Here, we will show how to create a library level (lower level) client and a secondary level client (using a wrapper). 
+
+ **Library level implementation** 
+ 1) Initialize a client and register it. (WebSocket protocol has been used here)
+ 2) Establish/define the client’s methods (send messages to the server)
+ 
+**Important:** when the user has defined multiple services on the server-side, this method’s name should be {$service name}/method’s name (example: “calculator/add”). Furthermore, make sure that the service’s name must match with the string name which is defined inside the “name” function that resides in the user-defined service class of the server-side. 
+ 
+ 3) Close the client eventually.
+ 
+ 
+ **Secondary level implementation (wrapper)** 
+ 1) Create a class separately and initialize a WebSocket client in it. 
+ 2) Define reusable functions inside the class 
+ 3) Define member methods for closing the client and registering the client. 
+
+**Note:** If the user has used a protocol like UDP or WS to implement the client, all the functions are working asynchronously (methods are not waiting for the execution). This is pretty much similar to the execution inside a rest API in the node js framework.
+
+**Note:** If the user has used a protocol like TCP to implement the client, all the functions are working synchronously (methods are waiting until the previous function is completed).    
+
+> This is just a single way to implement a client using the library. This method is useful when the user wants to define a single service class (calculator). Now assume that if the user wants to add more service classes (calculator and thermometer) instead of a single service class, how does the user manage that?. For managing that scenario, this library will give nice wrappers to the users to enhance the usability and readability of the code.
+
+**Process :**
+ 1) Create a service class and extend it from JRPCService class (given by the library)
+ 2) Initialize the ClientService 
+ 3) Add/define the reusable methods by using the initialized client service instance
+ 4) Create a Client instance by adding a necessary protocol configuration.
+ 5) Register the client
+ 6) Get the instance of defined service by using the getService() method. (User should cast with their service class before assigning the instance of the service class)
+ 7) Add the defined service’s methods (reusable methods)
+ 8) Close the client.
+ 
+ Example 01: Create a single service (only calculator)
+ 
+ Example 02: Create multiple services (calculator and thermometer)
+ 
+### Implementing a server by using the library.
+ 
+We can create 3 types of servers by using this library. They are TCP server, UDP server, and WebSocket server. For the demonstration, WebSocket is used as the protocol.
+
+1) Create a service and initialize the service’s methods.
+2) Create a service’s methods class and map service’s methods
+Here, “add”,” sub” and “div” are the method’s names of the request message. Users must map their defined service’s functions with the method's name of the request message like  above. 
+ 
+**Important:** let’s assume that the user has defined more services on behalf of the single service. In such scenarios, users must define their method’s name for the request message as {$service name}/method’s name (example: “calculator/add''). You will get a better understanding about that part in the future.   
+
+3) Create a server and initialize the defined service or services (wrapper)
+ 
+**Note:** Users can initialize their server without using this wrapper also if they want. 
+
+Code example : 
+```Ballerina
+server:Server serv = new (new Calculator());
+serv.sendResponse(caller, message); // should be defined inside the onBinaryMessage() method which is a remote function provided by the websocket module. 
+```
+ 4) Call the sendResponse message
+
+When you are using the sendResponse function it is better to define the function inside a  worker. Because by using that way, we will be able to manage concurrency. Otherwise, the server works synchronously (until the received request has proceeded, the next request is not considered to proceed). The below image represents how to define the function inside a worker as well. 
+
+Now you have a better understanding of how to define a server, service, service’s methods, and how to work with them. But it is only a single service. Let’s see how to create multiple services (example: calculator and thermometer) on the server side and work with them.  
+
+**Workflow :**
+ 1) Create multiple service classes and define their service’s name inside the “name” function after extending from the “JRPCService” class. 
+ 2) Create service method classes with respect to the defined services and map the initialized service’s methods inside the “getMethods” after extending from the JRPCMethods class. 
+
+**Note:** make sure to add the request's method name as “{$service name}/method name” when you are creating the client-side. Otherwise, the server will return the methodNotFound error for the requested message. You will get a better understanding from future demos. 
+
+  3) Initialize the server with multiple services. For that, you can add multiple service class instances into the constructor of the server as an array.   
+
+**Demo :**
+For the demonstration, we have considered two service classes called calculator and thermometer. 
+ 
+1) defining the calculator service and its method class
+2) defining the thermometer service and its method class
+3) initialize the server with multiple services  
+4) client side implementation
+
+**Note:** Sometimes, you might see below type of warning messages on the terminal. It is given by the Ballerina just to alert you. Furthermore, it is not an error but just a warning. Make sure that you have avoided concurrent access to the same mutable instance or object. If you are sure that there is not a concurrency issue in your application, please ignore that warning message.
+
+**Note:** Some examples (use cases) can be found through this GitHub link
+Link : 
+ 
 
