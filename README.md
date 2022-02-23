@@ -154,6 +154,9 @@ For the demonstration, we have considered two service classes called calculator 
 4) client side implementation
 
 **Note:** Sometimes, you might see below type of warning messages on the terminal. It is given by the Ballerina just to alert you. Furthermore, it is not an error but just a warning. Make sure that you have avoided concurrent access to the same mutable instance or object. If you are sure that there is not a concurrency issue in your application, please ignore that warning message.
+ 
+![error](https://user-images.githubusercontent.com/56679833/155269726-42b6d852-dfcd-454f-b7f6-5cdde5f4954d.PNG)
+ 
 
 **Note:** Some examples (use cases) can be found through this GitHub link
 Link : 
