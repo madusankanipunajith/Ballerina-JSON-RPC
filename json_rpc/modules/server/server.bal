@@ -59,26 +59,27 @@ public class Server {
     # Send the response message to the client
     #
     # + caller - Protocol identifer  
-    # + request -Rrequest message as a byte array (marshalled data)
-    public isolated function sendResponse(util:Jcaller caller, byte[] request) {
+    # + request - Rrequest message as a byte array (marshalled data)
+    public function sendResponse(util:Jcaller caller, byte[] request) {     
         string message = checkpanic string:fromBytes(request);
         byte[] response = self.run(message).toString().toBytes();
         if caller is websocket:Caller {
             checkpanic caller->writeBinaryMessage(response);
-        }else if caller is udp:Caller {
+        } else if caller is udp:Caller {
             checkpanic caller->sendBytes(response);
-        }else if caller is tcp:Caller {
+        } else if caller is tcp:Caller {
             checkpanic caller->writeBytes(response);
-        }else {
+        } else {
             log:printError(NOTSUPPORTEDPROTOCOL);
         }
+        
     }
 
     # Executes the request message and returns the response message
     #
     # + message - String type message which is recieved from the client
     # + return - Return jrpc response/batch/error/nil
-    private isolated function run(string message) returns 'types:SingleJRPCOutput|'types:BatchJRPCOutput|() {
+    private function run(string message) returns 'types:SingleJRPCOutput|'types:BatchJRPCOutput|() {
         'types:RequestType requestType = util:fetchRequest(message);
 
         if requestType is 'types:Error {
@@ -160,7 +161,7 @@ public class Server {
     #
     # + message - jrpc request
     # + return - Return jrpc response/error
-    private isolated function executeSingleJsonRequest('types:Request message) returns 'types:Error|'types:Response|() {
+    private function executeSingleJsonRequest('types:Request message) returns 'types:Error|'types:Response|() {
         'types:Method|error mf = self.filterMethod(message);
         if mf is error {
             return util:methodNotFoundError(message.id);
@@ -178,7 +179,7 @@ public class Server {
     # Executes a single notification message
     #
     # + message - jrpc notification
-    private isolated function executeSingleJsonNotification('types:Notification message) returns () {
+    private function executeSingleJsonNotification('types:Notification message) returns () {
         'types:Method|error mf = self.filterMethod(message);
 
         // server never return an output even an error is triggered
@@ -196,7 +197,7 @@ public class Server {
     #
     # + message - json array
     # + return - Return a batch response
-    private isolated function executeBatchJson(json[] message) returns 'types:BatchJRPCOutput {
+    private function executeBatchJson(json[] message) returns 'types:BatchJRPCOutput {
         'types:BatchJRPCOutput batch_res_array = [];
 
         foreach var item in message {

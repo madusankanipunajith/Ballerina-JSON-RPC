@@ -46,7 +46,7 @@ class CTServer {
         self.serv = new ([new Calculator(),new Thermometer()]);
     }
 
-    public isolated function send(websocket:Caller caller, byte[] message) {
+    public function send(websocket:Caller caller, byte[] message) {
         return self.serv.sendResponse(caller, message);
     }
 }
@@ -65,7 +65,7 @@ class Calculator {
 
 }
 
-isolated class CalcMethods {
+class CalcMethods {
     *server:JRPCMethods;
 
     isolated function addFunction(types:InputParams ifs) returns int|error {
@@ -109,7 +109,7 @@ class Thermometer {
     }
 }
 
-isolated class TherMethods {
+class TherMethods {
     *server:JRPCMethods;
 
     isolated function convirtFunction(types:InputParams ifs) returns error|float {

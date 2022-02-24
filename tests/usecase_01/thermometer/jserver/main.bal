@@ -37,9 +37,9 @@ class Thermometer {
     }
 }
 
-isolated class TherMethods {
+class TherMethods {
     *server:JRPCMethods;
-
+    
     isolated function convirtFunction(types:InputParams ifs) returns error|float {
         Temp temp = check ifs.cloneWithType();
         float ans = <float>(temp.z * 9 / 5) + 32;
