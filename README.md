@@ -312,12 +312,73 @@ class Thermometer {
 We can create 3 types of servers by using this library. They are TCP server, UDP server, and WebSocket server. For the demonstration, WebSocket is used as the protocol.
 
 1) Create a service and initialize the service’s methods.
+ ```Ballerina
+ class Calculator {
+    *server:JRPCService;
+
+    function init() {
+        CalcMethods cmethods = new ();
+        self.methods = cmethods;
+    }
+
+    public isolated function name() returns string {
+        return "calculator";
+    }
+
+}
+```
+ 
 2) Create a service’s methods class and map service’s methods
-Here, “add”,” sub” and “div” are the method’s names of the request message. Users must map their defined service’s functions with the method's name of the request message like  above. 
+Here, “add”,” sub” and “div” are the method’s names of the request message. Users must map their defined service’s functions with the method's name of the request message like  above.
+```Ballerina
+ class CalcMethods {
+    *server:JRPCMethods;
+
+    isolated function addFunction(types:InputParams ifs) returns int|error {
+        Nip nip = check ifs.cloneWithType();
+        return nip.x + nip.y;
+    }
+
+    isolated function subFunction(types:InputParams ifs) returns int|error {
+        Nip nip = check ifs.cloneWithType();
+        return nip.x - nip.y;
+    }
+
+    isolated function divFunction(types:InputParams ifs) returns float|error{
+        Nip nip = check ifs.cloneWithType();
+        return <float>nip.x/<float>nip.y;
+    }
+
+    public isolated function getMethods() returns 'types:Methods {
+
+        'types:Methods meth = {
+        "add": self.addFunction,
+        "sub": self.subFunction,
+        "div": self.divFunction
+        };
+
+        return meth;
+    }
+
+}
+``` 
  
 **Important:** let’s assume that the user has defined more services on behalf of the single service. In such scenarios, users must define their method’s name for the request message as {$service name}/method’s name (example: “calculator/add''). You will get a better understanding about that part in the future.   
 
 3) Create a server and initialize the defined service or services (wrapper)
+```Ballerina
+class CTServer {
+
+    server:Server serv;
+    function init() {
+        self.serv = new (new Calculator());
+    }
+
+    public function send(websocket:Caller caller, byte[] message) {
+        return self.serv.sendResponse(caller, message);
+    }
+}
+``` 
  
 **Note:** Users can initialize their server without using this wrapper also if they want. 
 
@@ -329,7 +390,26 @@ serv.sendResponse(caller, message); // should be defined inside the onBinaryMess
  4) Call the sendResponse message
 
 When you are using the sendResponse function it is better to define the function inside a  ```worker``` if you don't want to manage synchronization. Because by using that way, we will be able to manage asynchronous behaviour. Otherwise, the server works synchronously (until the received request has proceeded, the next request is not considered to proceed). The below image represents how to define the function inside a worker as well. 
+```Ballerina
+ service class WsService {
+    *websocket:Service;
+    remote function onBinaryMessage(websocket:Caller caller, byte[] data) returns websocket:Error? {
+        io:println("\nmessage: ", string:fromBytes(data));
 
+        @strand {
+            thread: "any"
+        }
+        worker T {
+            calculatorServer.send(caller, data);
+        }
+    }
+
+    remote function onClose(websocket:Caller caller, int statusCode, string reason) {
+        io:println(string `Client closed connection with ${statusCode} because of ${reason}`);
+    }
+}
+``` 
+ 
 Now you have a better understanding of how to define a server, service, service’s methods, and how to work with them. But it is only a single service. Let’s see how to create multiple services (example: calculator and thermometer) on the server side and work with them.  
 
 **Workflow :**
@@ -344,9 +424,162 @@ Now you have a better understanding of how to define a server, service, service�
 For the demonstration, we have considered two service classes called calculator and thermometer. 
  
 1) defining the calculator service and its method class
+ ```Ballerina
+ class Calculator {
+    *server:JRPCService;
+
+    function init() {
+        CalcMethods cmethods = new ();
+        self.methods = cmethods;
+    }
+
+    public isolated function name() returns string {
+        return "calculator";
+    }
+
+}
+
+class CalcMethods {
+    *server:JRPCMethods;
+
+    isolated function addFunction(types:InputParams ifs) returns int|error {
+        Nip nip = check ifs.cloneWithType();
+        return nip.x + nip.y;
+    }
+
+    isolated function subFunction(types:InputParams ifs) returns int|error {
+        Nip nip = check ifs.cloneWithType();
+        return nip.x - nip.y;
+    }
+
+    isolated function divFunction(types:InputParams ifs) returns float|error{
+        Nip nip = check ifs.cloneWithType();
+        return <float>nip.x/<float>nip.y;
+    }
+
+    public isolated function getMethods() returns 'types:Methods {
+
+        'types:Methods meth = {
+        "add": self.addFunction,
+        "sub": self.subFunction,
+        "div": self.divFunction
+        };
+
+        return meth;
+    }
+
+}
+``` 
 2) defining the thermometer service and its method class
+ ```Ballerina
+ class Thermometer {
+    *server:JRPCService;
+
+    function init() {
+        TherMethods tmethods = new ();
+        self.methods = tmethods;
+    }
+
+    public isolated function name() returns string {
+        return "thermometer";
+    }
+}
+
+class TherMethods {
+    *server:JRPCMethods;
+
+    isolated function convirtFunction(types:InputParams ifs) returns error|float {
+        Temp temp = check ifs.cloneWithType();
+        float ans = (temp.z * 9 / 5) + 32;
+        return ans;
+    }
+
+    isolated function printFunction(types:InputParams ifs) {
+        Temp temp = checkpanic ifs.cloneWithType();
+        io:println("Hello madusanka : ", temp.z);
+    }
+
+    public isolated function getMethods() returns types:Methods {
+        return {"convirt": self.convirtFunction, "print": self.printFunction};
+    }
+}
+``` 
 3) initialize the server with multiple services  
+ ```Ballerina
+ class CTServer {
+
+    server:Server serv;
+    function init() {
+        self.serv = new ([new Calculator(),new Thermometer()]);
+    }
+
+    public function send(websocket:Caller caller, byte[] message) {
+        return self.serv.sendResponse(caller, message);
+    }
+}
+```
 4) client side implementation
+```Ballerina
+ public function main() {
+    CTClient cl = new("localhost",3000);
+    cl.starts();
+
+    cl.add({"x":100, "y": 80}, function (types:Response|types:Error? u) returns () {
+        io:println(u);
+    });
+
+    cl.add({"x":1000, "y": 80}, function (types:Response|types:Error? u) returns () {
+        io:println(u);
+    });
+
+    cl.add({"x":1400, "y": 80}, function (types:Response|types:Error? u) returns () {
+        io:println(u);
+    });
+
+    cl.sub({"x":100,"y":90});
+
+    cl.convert({"z": 100});
+
+    cl.close();
+}
+
+class CTClient {
+    private 'client:WSClient wsClient;
+
+    public function init(string host, int port) {
+        self.wsClient = new(host, port);
+    }
+
+    public function starts() {
+        self.wsClient.register();
+    }
+
+    public function close() {
+        self.wsClient.closeClient();
+    }
+
+    // reusable method
+    public function add(anydata params, function (types:Response|types:Error? out) response) {
+        self.wsClient.sendRequest("calculator/add",params,function (types:Response|types:Error? u) returns () {
+           response(u); 
+        });
+    }
+
+    // reusable method
+    public function sub(anydata params) {
+        self.wsClient.sendRequest("calculator/sub",params,function (types:Response|types:Error? u) returns () {
+           io:println(u); 
+        });
+    }
+
+    // reusable method
+    public function convert(anydata params) {
+        self.wsClient.sendRequest("thermometer/convirt",params,function (types:Response|types:Error? u) returns () {
+           io:println(u); 
+        });
+    }
+}
+``` 
 
 **Note:** Sometimes, you might see below type of warning messages on the terminal. It is given by the Ballerina just to alert you. Furthermore, it is not an error but just a warning. Make sure that you have avoided concurrent access to the same mutable instance or object. If you are sure that there is not a concurrency issue in your application, please ignore that warning message.
  
