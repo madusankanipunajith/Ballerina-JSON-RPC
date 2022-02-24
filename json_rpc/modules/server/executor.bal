@@ -15,8 +15,7 @@ function execute('types:Request|'types:Notification request, function ('types:In
 
     // check empty parameters
     if parameters === () {
-        json P = {data: null};
-        fetchedParameters = check P.cloneWithType();
+        fetchedParameters = ();
 
         any _ = check abstractFunction(fetchedParameters);
         if request is 'types:Request {

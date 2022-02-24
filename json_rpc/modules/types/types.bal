@@ -55,7 +55,7 @@ public type Notification record {
 
 public type JRPCTypes Request|Response|Error|Notification;
 
-public type InputParams json|anydata[];
+public type InputParams json|anydata[]|();
 
 public type RequestType json|any[]|Error;
 
