@@ -88,18 +88,109 @@ We can create 3 types of clients by using this library. They are TCP client, UDP
 
  **Library level implementation** 
  1) Initialize a client and register it. (WebSocket protocol has been used here)
+ ```Ballerina
+ 'client:WSClient cl = new("localhost",3000);
+    cl.register();
+ ```
  2) Establish/define the client’s methods (send messages to the server)
+ ```Ballerina
+ wsClient.sendRequest("add", {"x":100, "y": 80}, function (types:Response|types:Error? u) returns () {
+         io:println("1 : ", u);
+});
+
+wsClient.sendRequest("sub", {"x":100, "y": 80}, function (types:Response|types:Error? u) returns () {
+        io:println("2 : ", u);
+});
+    
+wsClient.sendRequest("sub", 100, function (types:Response|types:Error? u) returns () {
+       io:println("3 : ", u);
+});
+
+
+wsClient.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}}],function (types:BatchJRPCOutput|types:Error? u) returns () {
+   io:println("4 : ", u);
+});
+    
+wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function (types:BatchJRPCOutput|types:Error? u) returns () {
+   io:println("5 : ", u);
+});
+    
+wsClient.sendRequestBatch([{method: "sub",params: [100,80],notification: true},{method: "add", params: {"x":100, "y": 80}}],function (types:BatchJRPCOutput|types:Error? u) returns () {
+  io:println("7 : ", u);
+});
+```
  
 **Important:** when the user has defined multiple services on the server-side, this method’s name should be {$service name}/method’s name (example: “calculator/add”). Furthermore, make sure that the service’s name must match with the string name which is defined inside the “name” function that resides in the user-defined service class of the server-side. 
+```Ballerina
+ public isolated function name() returns string {
+     return "calculator";
+ }
+ ```
  
  3) Close the client eventually.
- 
+ ```Ballerina
+ wsClient.closeClient();
+ ```
  
  **Secondary level implementation (wrapper)** 
  1) Create a class separately and initialize a WebSocket client in it. 
  2) Define reusable functions inside the class 
  3) Define member methods for closing the client and registering the client. 
+```Ballerina
+ public function main() {
+    CalculatorClient calc = new("localhost",3000);
+    calc.starts();
 
+    calc.add({"x":100, "y": 80}, function (types:Response|types:Error? u) returns () {
+        io:println(u);
+    });
+
+    calc.add({"x":1000, "y": 80}, function (types:Response|types:Error? u) returns () {
+        io:println(u);
+    });
+
+    calc.add({"x":1400, "y": 80}, function (types:Response|types:Error? u) returns () {
+        io:println(u);
+    });
+
+    calc.sub({"x":100,"y":90});
+
+    calc.sub(100);
+
+    calc.close();
+}
+
+class CalculatorClient {
+    private 'client:WSClient wsClient;
+
+    public function init(string host, int port) {
+        self.wsClient = new(host, port);
+    }
+
+    public function starts() {
+        self.wsClient.register();
+    }
+
+    public function close() {
+        self.wsClient.closeClient();
+    }
+
+    // reusable method
+    public function add(anydata params, function (types:Response|types:Error? out) response) {
+        self.wsClient.sendRequest("add",params,function (types:Response|types:Error? u) returns () {
+           response(u); 
+        });
+    }
+
+    // reusable method
+    public function sub(anydata params) {
+        self.wsClient.sendRequest("sub",params,function (types:Response|types:Error? u) returns () {
+           io:println(u); 
+        });
+    }
+}
+``` 
+ 
 **Note:** If the user has used a protocol like UDP or WS to implement the client, all the functions are working asynchronously (methods are not waiting for the execution). This is pretty much similar to the execution inside a rest API in the node js framework.
 
 **Note:** If the user has used a protocol like TCP to implement the client, all the functions are working synchronously (methods are waiting until the previous function is completed).    
@@ -117,8 +208,104 @@ We can create 3 types of clients by using this library. They are TCP client, UDP
  8) Close the client.
  
  Example 01: Create a single service (only calculator)
+ ```Ballerina
+ public function main() {
+    types:WSConfig wc ={
+        wsRemoteHost: "localhost",
+        wsRemotePort: 3000
+    };
+
+    'client:Client cl = new(wc);
+    cl.register();
+    Calculator calculator = <Calculator>cl.getService(new Calculator());
+    
+    calculator.add({"x":100, "y":30});
+    calculator.sub(100);
+    calculator.add(2090);
+    calculator.sub({"x":460,"y":60});
+
+    cl.close();
+}
+
+class Calculator {
+    *'client:JRPCService;
+
+    function init() {
+        self.clientService = new();
+    }
+
+    public function add(anydata params) {
+        self.clientService.sendRequest("add", params, function (types:Response|types:Error? u) returns () {
+            io:println(u);
+        });
+    }
+
+    public function sub(anydata params) {
+        self.clientService.sendRequest("sub", params, function (types:Response|types:Error? u) returns () {
+           io:println(u); 
+        });
+    }
+}
+```
  
- Example 02: Create multiple services (calculator and thermometer)
+Example 02: Create multiple services (calculator and thermometer)
+```Ballerina
+ public function main() {
+    types:WSConfig wc ={
+        wsRemoteHost: "localhost",
+        wsRemotePort: 3000
+    };
+    'client:Client cl = new(wc);
+    cl.register();
+    
+    Calculator calculator = <Calculator>cl.getService(new Calculator());
+    Thermometer thermometer = <Thermometer>cl.getService(new Thermometer());
+    
+    calculator.add({"x":100,"y":290});
+    calculator.sub(200);
+    thermometer.convert({"z":100});
+
+    cl.close(); 
+}
+
+class Calculator {
+    *'client:JRPCService;
+
+    private string CALC = "calculator";
+
+    public function init() {
+        self.clientService = new();
+    }
+
+    public function add(anydata params) {
+        self.clientService.sendRequest(self.CALC+"/add", params, function (types:Response|types:Error? u) returns () {
+            io:println(u);
+        });
+    }
+
+    public function sub(anydata params) {
+        self.clientService.sendRequest(self.CALC+"/sub", params, function (types:Response|types:Error? u) returns () {
+           io:println(u); 
+        });
+    }
+}
+
+class Thermometer {
+    *'client:JRPCService;
+
+    private string THERMO = "thermometer";
+
+    public function init() {
+        self.clientService = new();
+    }
+
+    public function convert(anydata params) {
+        self.clientService.sendRequest(self.THERMO+"/convirt", params, function (types:Response|types:Error? u) returns () {
+           io:println(u); 
+        });
+    }
+}
+``` 
  
 ### Implementing a server by using the library.
  
@@ -141,7 +328,7 @@ serv.sendResponse(caller, message); // should be defined inside the onBinaryMess
 ```
  4) Call the sendResponse message
 
-When you are using the sendResponse function it is better to define the function inside a  worker. Because by using that way, we will be able to manage concurrency. Otherwise, the server works synchronously (until the received request has proceeded, the next request is not considered to proceed). The below image represents how to define the function inside a worker as well. 
+When you are using the sendResponse function it is better to define the function inside a  ```worker``` if you don't want to manage synchronization. Because by using that way, we will be able to manage asynchronous behaviour. Otherwise, the server works synchronously (until the received request has proceeded, the next request is not considered to proceed). The below image represents how to define the function inside a worker as well. 
 
 Now you have a better understanding of how to define a server, service, service’s methods, and how to work with them. But it is only a single service. Let’s see how to create multiple services (example: calculator and thermometer) on the server side and work with them.  
 
@@ -168,5 +355,10 @@ For the demonstration, we have considered two service classes called calculator 
 
 **Note:** Some examples (use cases) can be found through this GitHub link
 Link : 
+
+**Further reference**
  
+- https://docs.actian.com/openroad/6.2/index.html#page/ServerRef/Sending_an_HTTP_POST_Request_Containing_the_JSON.htm
+- https://golangexample.com/a-simple-go-implementation-of-json-rpc-2-0-client-over-http/
+- http://software.dzhuvinov.com/json-rpc-2.0-base.html 
 
