@@ -120,7 +120,7 @@ wsClient.sendRequestBatch([{method: "sub",params: [100,80],notification: true},{
 });
 ```
  
-**Important:** when the user has defined multiple services on the server-side, this method’s name should be {$service name}/method’s name (example: “calculator/add”). Furthermore, make sure that the service’s name must match with the string name which is defined inside the “name” function that resides in the user-defined service class of the server-side. 
+**`Important:`** when the user has defined multiple services on the server-side, this method’s name should be {$service name}/method’s name (example: “calculator/add”). Furthermore, make sure that the service’s name must match with the string name which is defined inside the “name” function that resides in the user-defined service class of the server-side. 
 ```Ballerina
  public isolated function name() returns string {
      return "calculator";
@@ -191,9 +191,9 @@ class CalculatorClient {
 }
 ``` 
  
-**Note:** If the user has used a protocol like UDP or WS to implement the client, all the functions are working asynchronously (methods are not waiting for the execution). This is pretty much similar to the execution inside a rest API in the node js framework.
+**`Note:`** If the user has used a protocol like UDP or WS to implement the client, all the functions are working asynchronously (methods are not waiting for the execution). This is pretty much similar to the execution inside a rest API in the node js framework.
 
-**Note:** If the user has used a protocol like TCP to implement the client, all the functions are working synchronously (methods are waiting until the previous function is completed).    
+**`Note:`** If the user has used a protocol like TCP to implement the client, all the functions are working synchronously (methods are waiting until the previous function is completed).    
 
 > This is just a single way to implement a client using the library. This method is useful when the user wants to define a single service class (calculator). Now assume that if the user wants to add more service classes (calculator and thermometer) instead of a single service class, how does the user manage that?. For managing that scenario, this library will give nice wrappers to the users to enhance the usability and readability of the code.
 
@@ -363,7 +363,7 @@ Here, “add”,” sub” and “div” are the method’s names of the request
 }
 ``` 
  
-**Important:** let’s assume that the user has defined more services on behalf of the single service. In such scenarios, users must define their method’s name for the request message as {$service name}/method’s name (example: “calculator/add''). You will get a better understanding about that part in the future.   
+**`Important:`** let’s assume that the user has defined more services on behalf of the single service. In such scenarios, users must define their method’s name for the request message as {$service name}/method’s name (example: “calculator/add''). You will get a better understanding about that part in the future.   
 
 3) Create a server and initialize the defined service or services (wrapper)
 ```Ballerina
@@ -380,7 +380,7 @@ class CTServer {
 }
 ``` 
  
-**Note:** Users can initialize their server without using this wrapper also if they want. 
+**`Note:`** Users can initialize their server without using this wrapper also if they want. 
 
 Code example : 
 ```Ballerina
@@ -416,7 +416,7 @@ Now you have a better understanding of how to define a server, service, service�
  1) Create multiple service classes and define their service’s name inside the “name” function after extending from the “JRPCService” class. 
  2) Create service method classes with respect to the defined services and map the initialized service’s methods inside the “getMethods” after extending from the JRPCMethods class. 
 
-**Note:** make sure to add the request's method name as “{$service name}/method name” when you are creating the client-side. Otherwise, the server will return the methodNotFound error for the requested message. You will get a better understanding from future demos. 
+**`Note:`** make sure to add the request's method name as “{$service name}/method name” when you are creating the client-side. Otherwise, the server will return the methodNotFound error for the requested message. You will get a better understanding from future demos. 
 
   3) Initialize the server with multiple services. For that, you can add multiple service class instances into the constructor of the server as an array.   
 
@@ -581,13 +581,12 @@ class CTClient {
 }
 ``` 
 
-**Note:** Sometimes, you might see below type of warning messages on the terminal. It is given by the Ballerina just to alert you. Furthermore, it is not an error but just a warning. Make sure that you have avoided concurrent access to the same mutable instance or object. If you are sure that there is not a concurrency issue in your application, please ignore that warning message.
+**`Note:`** Sometimes, you might see below type of warning messages on the terminal. It is given by the Ballerina just to alert you. Furthermore, it is not an error but just a warning. Make sure that you have avoided concurrent access to the same mutable instance or object. If you are sure that there is not a concurrency issue in your application, please ignore that warning message.
  
 ![error](https://user-images.githubusercontent.com/56679833/155269726-42b6d852-dfcd-454f-b7f6-5cdde5f4954d.PNG)
  
 
-**Note:** Some examples (use cases) can be found through this GitHub link
-Link : 
+**`Note:`** Some examples (use cases) can be found through this GitHub link : https://github.com/madusankanipunajith/Use-cases-for-JRPCLFB
 
 **Further reference**
  
