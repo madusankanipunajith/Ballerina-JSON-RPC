@@ -1,7 +1,6 @@
 import json_rpc.'types;
 import json_rpc.util;
 
-
 # Executes the input function and fetches the oputput of the function
 #
 # + request - jrpc request message according to the jrpc specification (valid attributes)
@@ -17,11 +16,15 @@ function execute('types:Request|'types:Notification request, function ('types:In
     if parameters === () {
         fetchedParameters = ();
 
-        any _ = check abstractFunction(fetchedParameters);
+        any res = check abstractFunction(fetchedParameters);
         if request is 'types:Request {
-            return util:responseObject(request.id, SUCCESS);
+            if res === () {
+                return util:responseObject(request.id, SUCCESS);
+            } else {
+                return util:responseObject(request.id, res);
+            }
         } else {
-            return null;
+            return ();
         }
     }
 
@@ -34,7 +37,7 @@ function execute('types:Request|'types:Notification request, function ('types:In
 
     // execute the request/notification message
     any res = check abstractFunction(fetchedParameters);
-    if res is null {
+    if res === () {
         res = SUCCESS;
     }
 

@@ -29,7 +29,7 @@ service class WsService {
     remote function onBinaryMessage(websocket:Caller caller, byte[] data) returns websocket:Error? {
         io:println("\nmessage: ", string:fromBytes(data));
         
-        calculatorServer.send(caller, data);
+        calculatorServer.send(caller, data); // Didn't add worker since message should be processed searialized way
         
     }
 

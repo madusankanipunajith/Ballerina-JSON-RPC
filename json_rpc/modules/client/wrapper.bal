@@ -11,13 +11,13 @@ public class Client {
 
     public function init(util:Config config) {
         if config is types:TCPConfig {
-            self.tcpClient = new(config.tcpRemoteHost,config.tcpRemotePort);
+            self.tcpClient = new(config.tcpRemoteHost,config.tcpRemotePort, config?.security);
             self.clientServie = self.tcpClient;
         }else if config is types:UDPConfig {
-            self.udpClient = new(config.udpRemoteHost,config.udpRemotePort);
+            self.udpClient = new(config.udpRemoteHost,config.udpRemotePort, config?.security);
             self.clientServie = self.udpClient;
         }else {
-            self.wsClient = new(config.wsRemoteHost,config.wsRemotePort);
+            self.wsClient = new(config.wsRemoteHost,config.wsRemotePort, config?.security);
             self.clientServie = self.wsClient;
         }
     }

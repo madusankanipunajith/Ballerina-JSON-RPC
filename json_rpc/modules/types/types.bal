@@ -1,3 +1,6 @@
+import ballerina/websocket;
+import ballerina/udp;
+import ballerina/tcp;
 public type JsonRecord record {|
     int? id?;
     string method?;
@@ -53,22 +56,30 @@ public type Notification record {
     string jsonrpc = "2.0";
 };
 
+# Union of Request,Response,Error and Notification
 public type JRPCTypes Request|Response|Error|Notification;
 
+# Union of json,Array of anydata and nil
 public type InputParams json|anydata[]|();
 
+# Union if json,Array of any type and Error
 public type RequestType json|any[]|Error;
 
+# User defined method in the server side
 public type Method  function (InputParams) returns any|error;
 
+# Record of Method data type (user defined functions)
 public type Methods record {|
     function (InputParams) returns any|error...;
 |};
 
+# Union of Response,Error,Array of JRPCTypes and nil
 public type JRPCResponse Response|Error|JRPCTypes?[]|();
 
+# It is just an Array of JRPCTypes
 public type BatchJRPCOutput JRPCTypes?[];
 
+# Union of Response and Error
 public type SingleJRPCOutput Response|Error;
 
 # Parameter type of batch methods (sendBatchRequest, sendBatchNotification)
@@ -84,27 +95,33 @@ public type BatchInput record {|
 
 # Configuration of the tcp protocol
 #
-# + tcpRemoteHost - remote host (localhost) 
-# + tcpRemotePort - remote port
+# + tcpRemoteHost - remote host (localhost)  
+# + tcpRemotePort - remote port  
+# + security - TLS security (optional)
 public type TCPConfig record {|
     string tcpRemoteHost;
     int tcpRemotePort;
+    tcp:ClientConfiguration security?;
 |};
 
 # Configuration of the udp protocol
 #
-# + udpRemoteHost - remote host (localhost) 
-# + udpRemotePort - remote port
+# + udpRemoteHost - remote host (localhost)  
+# + udpRemotePort - remote port  
+# + security - TLS security (optional)
 public type UDPConfig record {|
     string udpRemoteHost;
     int udpRemotePort;
+    udp:ConnectClientConfiguration security?;
 |};
 
 # Configuration of the udp protocol
 #
 # + wsRemoteHost - remote host (localhost)  
-# + wsRemotePort - remote port
+# + wsRemotePort - remote port  
+# + security - TLS security (optional)
 public type WSConfig record {|
     string wsRemoteHost;
     int wsRemotePort;
+    websocket:ClientConfiguration security?;
 |};
