@@ -1,4 +1,4 @@
-import ballerina/websocket;
+import ballerina/udp;
 import ballerina/io;
 import asus/json_rpc.server;
 import asus/json_rpc.types;
@@ -27,22 +27,14 @@ map<json> object2 = {
 
 server:Server svr = new (new Service_01());
 
-service / on new websocket:Listener(3000) {
-    resource function get .() returns websocket:Service|websocket:Error {
-        return new WsService();
-    }
-}
+service on new udp:Listener(3000) {
 
-service class WsService {
-    *websocket:Service;
-    remote function onBinaryMessage(websocket:Caller caller, byte[] data) returns websocket:Error? {
-        io:println("\nmessage: ", string:fromBytes(data));
-        svr.sendResponse(caller, data);
+    remote function onDatagram(udp:Caller caller , readonly & udp:Datagram datagram) returns udp:Error? {
+        io:println("Received by listener: ", string:fromBytes(datagram.data));
+        svr.sendResponse(caller,datagram.data);
     }
 
-    remote function onClose(websocket:Caller caller, int statusCode, string reason) {
-        io:println(string `Client closed connection with ${statusCode} because of ${reason}`);
-    }
+    
 }
 
 class Service_01 {

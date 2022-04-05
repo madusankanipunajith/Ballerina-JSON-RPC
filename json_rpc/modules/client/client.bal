@@ -59,13 +59,21 @@ public class WSClient {
     private websocket:Client wsClient;
     private Store store;
 
-    # Constructor of the websocket client (WSClient class) 
+    # Constructor of the websocket client (WSClient class)
     #
-    # + host - Remote host (localhost) 
-    # + port - Remote port (3000)
-    public function init(string host, int port) {
-        string url = "ws://" + host + ":" + port.toString();
-        self.wsClient = checkpanic new (url);
+    # + host - Remote host (localhost)  
+    # + port - Remote port (3000)  
+    # + tls - TLS security (optional)
+    public function init(string host, int port, websocket:ClientConfiguration? tls = ()) {
+        string url; 
+        if tls is () {
+            url = "ws://" + host + ":" + port.toString();
+            self.wsClient = checkpanic new (url);
+        }else{
+            url = "wss://" + host + ":" + port.toString();
+            self.wsClient = checkpanic new (url,tls);
+        }
+        
         self.store = new ();
     }
 
@@ -198,8 +206,13 @@ public class TCPClient {
     private tcp:Client tcpClient;
     private Store store;
 
-    public function init(string host, int port) {
-        self.tcpClient = checkpanic new (host, port);
+    public function init(string host, int port, tcp:ClientConfiguration? tls = ()) {
+        if tls is () {
+            self.tcpClient = checkpanic new (host, port);    
+        }else {
+            self.tcpClient = checkpanic new(host, port, tls);
+        }
+        
         self.store = new ();
     }
 
@@ -266,8 +279,13 @@ public class UDPClient {
     private udp:ConnectClient udpClient;
     private Store store;
 
-    public function init(string host, int port) {
-        self.udpClient = checkpanic new (host, port);
+    public function init(string host, int port, udp:ConnectClientConfiguration? tls = ()) {
+        if tls is () {
+            self.udpClient = checkpanic new (host, port);    
+        }else{
+            self.udpClient = checkpanic new(host, port, tls);
+        }
+        
         self.store = new ();
     }
 

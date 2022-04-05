@@ -3,9 +3,9 @@ import asus/json_rpc.types;
 import ballerina/io;
 
 public function main() {
-    types:WSConfig wc ={
-        wsRemoteHost: "localhost",
-        wsRemotePort: 3000
+    types:UDPConfig wc ={
+        udpRemoteHost: "localhost",
+        udpRemotePort: 3000
     };
 
     'client:Client cl = new(wc);
