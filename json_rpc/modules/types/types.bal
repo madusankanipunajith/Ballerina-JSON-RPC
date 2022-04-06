@@ -95,33 +95,33 @@ public type BatchInput record {|
 
 # Configuration of the tcp protocol
 #
-# + tcpRemoteHost - remote host (localhost)  
-# + tcpRemotePort - remote port  
+# + host - remote host (localhost)  
+# + port - remote port  
 # + security - TLS security (optional)
 public type TCPConfig record {|
-    string tcpRemoteHost;
-    int tcpRemotePort;
+    string host;
+    int port;
     tcp:ClientConfiguration security?;
 |};
 
 # Configuration of the udp protocol
 #
-# + udpRemoteHost - remote host (localhost)  
-# + udpRemotePort - remote port  
+# + host - remote host (localhost)  
+# + port - remote port  
 # + security - TLS security (optional)
 public type UDPConfig record {|
-    string udpRemoteHost;
-    int udpRemotePort;
+    string host;
+    int port;
     udp:ConnectClientConfiguration security?;
 |};
 
 # Configuration of the udp protocol
 #
-# + wsRemoteHost - remote host (localhost)  
-# + wsRemotePort - remote port  
+# + host - remote host (localhost)  
+# + port - remote port  
 # + security - TLS security (optional)
 public type WSConfig record {|
-    string wsRemoteHost;
-    int wsRemotePort;
+    string host;
+    int port;
     websocket:ClientConfiguration security?;
 |};

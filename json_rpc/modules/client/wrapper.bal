@@ -1,6 +1,7 @@
 import json_rpc.util;
 import json_rpc.types;
 import ballerina/log;
+import ballerina/websocket;
 
 # Client wrapper
 public class Client {
@@ -11,13 +12,13 @@ public class Client {
 
     public function init(util:Config config) {
         if config is types:TCPConfig {
-            self.tcpClient = new(config.tcpRemoteHost,config.tcpRemotePort, config?.security);
+            self.tcpClient = new(config.host,config.port, config?.security);
             self.clientServie = self.tcpClient;
         }else if config is types:UDPConfig {
-            self.udpClient = new(config.udpRemoteHost,config.udpRemotePort, config?.security);
+            self.udpClient = new(config.host,config.port, config?.security);
             self.clientServie = self.udpClient;
         }else {
-            self.wsClient = new(config.wsRemoteHost,config.wsRemotePort, config?.security);
+            self.wsClient = new(config.host,config.port, <websocket:ClientConfiguration?> config?.security);
             self.clientServie = self.wsClient;
         }
     }

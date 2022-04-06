@@ -1,22 +1,20 @@
-import json_rpc.'types;
 import ballerina/websocket;
 import ballerina/tcp;
 import ballerina/udp;
 import ballerina/log;
+import json_rpc.types;
 import json_rpc.util;
 
 # Json rpc service array
 public type JRPCSA JRPCService[];
 
 # Abstract class for the service methods
-public class JRPCMethods {
+public type JRPCMethods object{
 
     # Inbuilt function for mapping the methods
     # + return - Returns the Methods mapper 
-    public isolated function getMethods() returns types:Methods {
-        return {};
-    }
-}
+    public isolated function getMethods() returns types:Methods;
+};
 
 # Abstract class for the service class
 #
@@ -26,7 +24,7 @@ public class JRPCService {
 
     # Constructor
     public isolated function init() {
-        self.methods = new ();
+        self.methods = new ServiceMethod();
     }
 
     # Auto genarated function to add service name 
@@ -223,4 +221,12 @@ public class Server {
         return batch_res_array;
     }
 
+}
+
+class ServiceMethod {
+    *JRPCMethods;
+
+    public isolated function getMethods() returns types:Methods {
+        return {};
+    }
 }
