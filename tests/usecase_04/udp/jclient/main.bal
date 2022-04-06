@@ -4,8 +4,8 @@ import ballerina/io;
 
 public function main() {
     types:UDPConfig wc ={
-        udpRemoteHost: "localhost",
-        udpRemotePort: 3000
+        host: "localhost",
+        port: 3000
     };
 
     'client:Client cl = new(wc);
