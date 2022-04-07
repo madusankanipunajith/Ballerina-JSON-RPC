@@ -308,8 +308,79 @@ class Thermometer {
 ``` 
  
 ### Implementing a server by using the library.
+
+Initially, you need to define/initialize the Listner provided by Ballerina with respect to the protocol that you are going to use. Followings are the Listner's skeltons. You can copy and paste the Listner's skelton if you want
  
-We can create 3 types of servers by using this library. They are TCP server, UDP server, and WebSocket server. For the demonstration, WebSocket is used as the protocol.
+**`TCP Listner:`**
+```Ballerina
+import ballerina/io;
+import ballerina/log;
+import ballerina/tcp;
+service on new tcp:Listener(#port number) {
+
+    remote function onConnect(tcp:Caller caller) returns tcp:ConnectionService {
+        return new EchoService();
+    }
+}
+
+service class EchoService {
+    *tcp:ConnectionService;
+    remote function onBytes(tcp:Caller caller, readonly & byte[] data) returns tcp:Error? {
+
+   
+    }
+
+    remote function onError(tcp:Error err) {
+        log:printError("An error occurred", 'error = err);
+    }
+
+    remote function onClose() {
+        io:println("Client left");
+    }
+}
+ ``` 
+ 
+**`UDP Listner:`**
+```Ballerina
+import ballerina/udp;
+import ballerina/io;
+ 
+service on new udp:Listener(#port number) {
+  remote function onDatagram(udp:Caller caller, readonly & udp:Datagram datagram) returns udp:Error? {
+       
+       
+    }
+
+    remote function onError(udp:Error err) {
+        io:println(err);
+    }
+} 
+ ``` 
+ 
+**`WS Listner:`**
+```Ballerina
+import ballerina/websocket;
+import ballerina/io;
+ 
+service / on new websocket:Listener(#port number) {
+    resource function get .() returns websocket:Service|websocket:Error {
+        return new WsService();
+    }
+}
+
+service class WsService {
+    *websocket:Service;
+    remote function onBinaryMessage(websocket:Caller caller, byte[] data) returns websocket:Error? {
+       
+    }
+
+    remote function onClose(websocket:Caller caller, int statusCode, string reason) {
+        io:println(string `Client closed connection with ${statusCode} because of ${reason}`);
+    }
+}
+ ``` 
+ 
+Here, We can create 3 types of servers by using this library. They are TCP server, UDP server, and WebSocket server. For the demonstration, WebSocket is used as the protocol.
 
 1) Create a service and initialize the service’s methods.
  ```Ballerina
