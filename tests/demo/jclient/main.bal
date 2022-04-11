@@ -1,43 +1,56 @@
 import asus/json_rpc.'client;
-import ballerina/io;
 import asus/json_rpc.types;
+import ballerina/io;
 
 public function main() {
-    types:UDPConfig wc ={
-        udpRemoteHost: "localhost",
-        udpRemotePort: 8080
+    types:WSConfig  wc = {
+        host: "localhost",
+        port: 3000
     };
 
     'client:Client cl = new(wc);
     cl.register();
-    Calculator calculator = <Calculator>cl.getService(new Calculator());
+
+    Calculator calc = <Calculator>cl.getService(new Calculator());
+    calc.add(10,20);
     
-    calculator.add({"x":100, "y":30});
-    calculator.sub(100);
-    calculator.add(2090);
-    calculator.sub({"x":460,"y":60});
+    calc.multiply(30,10,function (int i) returns () {
+        io:println("Answer is : ", i);    
+    });
 
     cl.close();
 }
 
-class Calculator {
+public class Calculator {
     *'client:JRPCService;
 
     function init() {
         self.clientService = new();
     }
 
-    public function add(anydata params) {
-        self.clientService.sendRequest("add", params, function (types:Response|types:Error? u) returns () {
-            io:println(u);
-        });
-    }
-
-    public function sub(anydata params) {
-        self.clientService.sendRequest("sub", params, function (types:Response|types:Error? u) returns () {
+    public function add(int a, int b) {
+        self.clientService.sendRequest("add", {x:a, y:b}, function (types:Response|types:Error? u) returns () {
            io:println(u); 
         });
     }
+
+    public function sub(int a, int b) {
+        self.clientService.sendRequest("sub", {x:a, y:b}, function (types:Response|types:Error? u) returns () {
+           io:println(u); 
+        });
+    }
+
+    public function multiply(int a, int b, function (int answer) callback) {
+        self.clientService.sendRequest("mult", {x:a, y:b}, function (types:Response|types:Error? u) returns () {
+           if u is types:Response {
+               callback(<int>u.result);
+           }else{
+               io:println(u);
+           } 
+        });
+    }
+
+    // define the division....
 }
 
 
