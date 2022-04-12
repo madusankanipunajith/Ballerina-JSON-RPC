@@ -8,27 +8,27 @@ public class Client {
     private TCPClient tcpClient;
     private UDPClient udpClient;
     private WSClient wsClient;
-    private ClientService clientServie = new();
+    private ClientService clientService = new();
 
     public function init(util:Config config) {
         if config is types:TCPConfig {
             self.tcpClient = new(config.host,config.port, config?.security);
-            self.clientServie = self.tcpClient;
+            self.clientService = self.tcpClient;
         }else if config is types:UDPConfig {
             self.udpClient = new(config.host,config.port, config?.security);
-            self.clientServie = self.udpClient;
+            self.clientService = self.udpClient;
         }else {
             self.wsClient = new(config.host,config.port, <websocket:ClientConfiguration?> config?.security);
-            self.clientServie = self.wsClient;
+            self.clientService = self.wsClient;
         }
     }
 
     public function register() {
-        if self.clientServie is WSClient {
-            self.wsClient = <WSClient> self.clientServie;
+        if self.clientService is WSClient {
+            self.wsClient = <WSClient> self.clientService;
             self.wsClient.register();
-        }else if self.clientServie is UDPClient {
-            self.udpClient = <UDPClient> self.clientServie;
+        }else if self.clientService is UDPClient {
+            self.udpClient = <UDPClient> self.clientService;
             self.udpClient.register();
         }else {
             log:printWarn("TCP client works synchronusly");
@@ -37,20 +37,20 @@ public class Client {
     }
 
     public function close() {
-        if self.clientServie is WSClient {
-            self.wsClient = <WSClient> self.clientServie;
+        if self.clientService is WSClient {
+            self.wsClient = <WSClient> self.clientService;
             self.wsClient.closeClient();
-        }else if self.clientServie is UDPClient {
-            self.udpClient = <UDPClient> self.clientServie;
+        }else if self.clientService is UDPClient {
+            self.udpClient = <UDPClient> self.clientService;
             self.udpClient.closeClient();
         }else {
-            self.tcpClient = <TCPClient> self.clientServie;
+            self.tcpClient = <TCPClient> self.clientService;
             self.tcpClient.closeClient();
         }
     }
 
     public function getService(JRPCService jrpcs) returns JRPCService{
-        jrpcs.clientService = self.clientServie;
+        jrpcs.clientService = self.clientService;
         return jrpcs;
     }
 }

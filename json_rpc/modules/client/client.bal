@@ -12,7 +12,7 @@ public class JRPCService {
     public ClientService clientService;
 
     public function init() {
-        self.clientService = new();
+        self.clientService = new ();
     }
 }
 
@@ -52,6 +52,7 @@ public class ClientService {
     }
 
 }
+
 # Create a client using WS protocol (working asynchronously)
 public class WSClient {
     *ClientService;
@@ -65,15 +66,15 @@ public class WSClient {
     # + port - Remote port (3000)  
     # + tls - TLS security (optional)
     public function init(string host, int port, websocket:ClientConfiguration? tls = ()) {
-        string url; 
+        string url;
         if tls is () {
             url = "ws://" + host + ":" + port.toString();
             self.wsClient = checkpanic new (url);
-        }else{
+        } else {
             url = "wss://" + host + ":" + port.toString();
-            self.wsClient = checkpanic new (url,tls);
+            self.wsClient = checkpanic new (url, tls);
         }
-        
+
         self.store = new ();
     }
 
@@ -208,11 +209,11 @@ public class TCPClient {
 
     public function init(string host, int port, tcp:ClientConfiguration? tls = ()) {
         if tls is () {
-            self.tcpClient = checkpanic new (host, port);    
-        }else {
-            self.tcpClient = checkpanic new(host, port, tls);
+            self.tcpClient = checkpanic new (host, port);
+        } else {
+            self.tcpClient = checkpanic new (host, port, tls);
         }
-        
+
         self.store = new ();
     }
 
@@ -281,11 +282,11 @@ public class UDPClient {
 
     public function init(string host, int port, udp:ConnectClientConfiguration? tls = ()) {
         if tls is () {
-            self.udpClient = checkpanic new (host, port);    
-        }else{
-            self.udpClient = checkpanic new(host, port, tls);
+            self.udpClient = checkpanic new (host, port);
+        } else {
+            self.udpClient = checkpanic new (host, port, tls);
         }
-        
+
         self.store = new ();
     }
 
@@ -301,7 +302,7 @@ public class UDPClient {
 
                         if fetchResponseResult is types:Response || fetchResponseResult is types:Error {
                             if fetchResponseResult.id === () {
-                                log:printError(UNMATCHED_ERROR,'error = error(fetchResponseResult.toString()));
+                                log:printError(UNMATCHED_ERROR, 'error = error(fetchResponseResult.toString()));
                             } else {
                                 self.store.pushResponse(fetchResponseResult);
                             }
@@ -350,8 +351,8 @@ public class UDPClient {
 
     public function sendRequest(string method, anydata params, function (types:Response|types:Error? response) returns () callback) {
         int id = self.store.genarateId();
-        self.store.pushRequest(util:sendRequest(id,method,params));
-        string jsonMessage = util:sendRequest(id,method,params).toJsonString();
+        self.store.pushRequest(util:sendRequest(id, method, params));
+        string jsonMessage = util:sendRequest(id, method, params).toJsonString();
         byte[] msgByteArray = jsonMessage.toBytes();
         checkpanic self.udpClient->writeBytes(msgByteArray);
 
@@ -392,6 +393,4 @@ public class UDPClient {
         }
     }
 }
-
-
 
