@@ -21,7 +21,7 @@ public isolated function responseObject(int requestId, any answer) returns 'type
 public isolated function parseError() returns 'types:Error {
     'types:Error err = {
             id: null,
-            err: {"code": "-32700", "message": "Parse error"},
+            err: {"code": CODE_PARSE, "message": MESSAGE_PARSE},
             jsonrpc: "2.0"
     };
 
@@ -35,7 +35,7 @@ public isolated function parseError() returns 'types:Error {
 public isolated function methodNotFoundError(int requestId) returns 'types:Error {
     'types:Error err = {
         id: requestId,
-        err: {code: "-32601", message: "method is not found"},
+        err: {code: CODE_METHOD_NOT_FOUND, message: MESSAGE_METHOD_NOT_FOUND},
         jsonrpc: "2.0"
     };
 
@@ -49,7 +49,7 @@ public isolated function methodNotFoundError(int requestId) returns 'types:Error
 public isolated function invalidMethodParams(int requestId) returns 'types:Error {
     'types:Error err = {
         id: requestId,
-        err: {code: "-32602", message: "Invalid method parameters"},
+        err: {code: CODE_INVALID_METHOD_PARAMS, message: MESSAGE_INVALID_METHOD_PARAMS},
         jsonrpc: "2.0"
     };
 
@@ -61,7 +61,7 @@ public isolated function invalidMethodParams(int requestId) returns 'types:Error
 public isolated function serverError() returns 'types:Error {
     'types:Error err = {
         id: null,
-        err: {"code": "-32000", "message": "Server error"},
+        err: {"code": CODE_SERVER, "message": MESSAGE_SERVER},
         jsonrpc: "2.0"
     };
 
@@ -75,7 +75,7 @@ public isolated function serverError() returns 'types:Error {
 public isolated function internalError(int requestId) returns 'types:Error {
     'types:Error err = {
         id: requestId,
-        err: {"code": "-32603", "message": "Internal error"},
+        err: {"code": CODE_INTERNAL, "message": MESSAGE_INTERNAL},
         jsonrpc: "2.0"
     };
 
@@ -87,7 +87,7 @@ public isolated function internalError(int requestId) returns 'types:Error {
 public isolated function invalidRequestError() returns 'types:Error {
     'types:Error err = {
         id: null,
-        err: {"code": "-32600", "message": "Invalid request"},
+        err: {"code": CODE_INVALID_REQUEST, "message": MESSAGE_INVALID_REQUEST},
         jsonrpc: "2.0"
     };
 

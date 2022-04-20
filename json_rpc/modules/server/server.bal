@@ -58,7 +58,7 @@ public class Server {
     #
     # + caller - Protocol identifer  
     # + request - Rrequest message as a byte array (marshalled data)
-    public function sendResponse(util:Jcaller caller, byte[] request) {     
+    public function sendResponse(util:Jcaller caller, byte[] request) {   
         string message = checkpanic string:fromBytes(request);
         byte[] response = self.run(message).toString().toBytes();
         if caller is websocket:Caller {
@@ -68,7 +68,7 @@ public class Server {
         } else if caller is tcp:Caller {
             checkpanic caller->writeBytes(response);
         } else {
-            log:printError(NOTSUPPORTEDPROTOCOL);
+            log:printError(NOT_SUPPORTED_PROTOCOL);
         }
         
     }
@@ -132,7 +132,7 @@ public class Server {
                     serviceName = string:substring(method, 0, index);
                     methodName = string:substring(method, index + 1, method.length());
                 } else {
-                    return error(METHODNOTFOUND);
+                    return error(METHOD_NOT_FOUND);
                 }
 
                 foreach var item in self.jrpcsa {
@@ -142,14 +142,14 @@ public class Server {
                     }
                 }
             } else {
-                return error(METHODNOTFOUND);
+                return error(METHOD_NOT_FOUND);
             }
         }
 
         'types:Method|error selectedMethod = trap allMethods.get(methodName);
 
         if selectedMethod is error {
-            return error(METHODNOTFOUND);
+            return error(METHOD_NOT_FOUND);
         } else {
             return selectedMethod;
         }
