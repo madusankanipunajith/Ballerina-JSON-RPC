@@ -13,7 +13,7 @@ public function main() {
 
     Calculator calc = <Calculator>cl.getService(new Calculator());
     calc.add(10,20);
-    
+    calc.sub(100,20);
     calc.multiply(30,10,function (int i) returns () {
         io:println("Answer is : ", i);    
     });
@@ -35,13 +35,13 @@ public class Calculator {
     }
 
     public function sub(int a, int b) {
-        self.clientService.sendRequest("sub", {x:a, y:b}, function (types:Response|types:Error? u) returns () {
+        self.clientService.sendRequest("sub", 100, function (types:Response|types:Error? u) returns () {
            io:println(u); 
         });
     }
 
     public function multiply(int a, int b, function (int answer) callback) {
-        self.clientService.sendRequest("mult", {x:a, y:b}, function (types:Response|types:Error? u) returns () {
+        self.clientService.sendRequest("mult", {x:a, z:b}, function (types:Response|types:Error? u) returns () {
            if u is types:Response {
                callback(<int>u.result);
            }else{
@@ -52,5 +52,4 @@ public class Calculator {
 
     // define the division....
 }
-
 

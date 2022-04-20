@@ -17,7 +17,7 @@ public isolated function validate(json message) returns 'types:JRPCTypes {
             eid = null;
         }
 
-        return sendError(eid, {code: "-32600", message: "Invalid request"});
+        return sendError(eid, {code: CODE_INVALID_REQUEST, message: MESSAGE_INVALID_REQUEST});
     } else {
         
         // notification message can have params but not compalsory
@@ -40,6 +40,6 @@ public isolated function validate(json message) returns 'types:JRPCTypes {
         }
 
         //return error("cannot find a json rpc message type");
-        return sendError(jmessage?.id is null ? null : <int>jmessage?.id, {code: "-32600", message: "Invalid request"});
+        return sendError(jmessage?.id is null ? null : <int>jmessage?.id, {code: CODE_INVALID_REQUEST, message: MESSAGE_INVALID_REQUEST});
     }
 }
