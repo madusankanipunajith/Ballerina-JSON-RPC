@@ -17,7 +17,9 @@ public function main() {
     calculator.sub(200);
     thermometer.convert({"z":100});
 
-    cl.close(); 
+    cl.close(function(){
+        io:println("close the client...");
+    }); 
 }
 
 class Calculator {

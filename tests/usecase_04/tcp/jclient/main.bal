@@ -11,6 +11,10 @@ public function main() {
     'client:Client cl = new(tc);
     Calculator calc =  <Calculator>cl.getService(new Calculator());
     calc.display(100);
+
+    cl.close(function(){
+        io:println("close the client....");
+    });
 }
 
 class Calculator{

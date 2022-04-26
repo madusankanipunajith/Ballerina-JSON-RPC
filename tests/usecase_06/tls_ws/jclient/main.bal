@@ -27,8 +27,11 @@ public function main() {
 
     emp.getSalary("Jones", "Welsh");
 
-    cl.close();
+    cl.close(function(){
+        io:println("Client has been closed...");
+    });
 }
+
 
 class Employ{
     *'client:JRPCService;
@@ -37,7 +40,7 @@ class Employ{
         self.clientService = new();
     }
 
-    public function getLeader() {
+    public function getLeader() {io:println("A");
         self.clientService.sendRequest("lead",(), function (types:Response|types:Error? response){
             if response is types:Response{
                 io:println("Leader is ", response.result);
@@ -45,7 +48,7 @@ class Employ{
         });
     }
 
-    public function getSalary(string f, string l) {
+    public function getSalary(string f, string l) {io:println("D");
         self.clientService.sendRequest("salary",{first:100, last:l}, function (types:Response|types:Error? response){
             if response is types:Response{
                 io:println("Salary is ", response.result);
@@ -55,7 +58,7 @@ class Employ{
         });
     }
 
-    public function getNames() {
+    public function getNames() {io:println("B");
         self.clientService.sendRequest("list_fnames",(), function (types:Response|types:Error? response){
             if response is types:Response{
                 io:println("Names ", response.result);
@@ -63,7 +66,7 @@ class Employ{
         });
     }
 
-    public function getTotalSalary(function (int total) callback) {
+    public function getTotalSalary(function (int total) callback) {io:println("C");
         self.clientService.sendRequest("total", (), function(types:Response|types:Error? response){
             if response is types:Response{
                 callback(<int> response.result);

@@ -22,7 +22,9 @@ public function main() {
     calculator.add(2090);
     calculator.sub({"x":460,"y":60});
 
-    cl.close();
+    cl.close(function (){
+        io:println("close the client...");
+    });
 }
 
 class Calculator {

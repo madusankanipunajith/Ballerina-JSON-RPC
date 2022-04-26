@@ -3,8 +3,14 @@ import asus/json_rpc.types;
 import ballerina/io;
 
 public function main() {
-    EmpClient cl = new("localhost", 3000);
-    cl.starts();
+    types:WSConfig wc ={
+        host: "localhost",
+        port: 3000
+    };
+    'client:Client jcl = new(wc);
+    jcl.register(); 
+
+    EmpClient cl = <EmpClient> jcl.getService(new EmpClient());
 
     cl.getSalary({"name": "Madusanka"});
     cl.increseSalary({"name": "Nadeeshaan", "salary": 500},function (types:Response|types:Error? u) returns () {
@@ -14,40 +20,34 @@ public function main() {
     cl.resetSalary();
     cl.getSalary({"name": "Nadeeshaan"});
 
-    cl.close();
+    jcl.close(function (){
+        io:println("close the client...");
+    });
 }
 
 class EmpClient {
-    private 'client:WSClient wsClient;
+    *'client:JRPCService;
 
-    public function init(string host, int port) {
-        self.wsClient = new(host, port);
-    }
-
-    public function starts() {
-        self.wsClient.register();
-    }
-
-    public function close() {
-        self.wsClient.closeClient();
+    function init() {
+        self.clientService = new();
     }
 
     // reusable method
     public function increseSalary(anydata params, function (types:Response|types:Error? out) response) {
-        self.wsClient.sendRequest("increase",params,function (types:Response|types:Error? u) returns () {
+        self.clientService.sendRequest("increase",params,function (types:Response|types:Error? u) returns () {
            response(u); 
         });
     }
 
     // reusable method
     public function getSalary(anydata params) {
-        self.wsClient.sendRequest("salary",params,function (types:Response|types:Error? u) returns () {
+        self.clientService.sendRequest("salary",params,function (types:Response|types:Error? u) returns () {
            io:println(u); 
         });
     }
 
     // reusable method
     public function resetSalary() {
-        self.wsClient.sendNotification("reset",());
+        self.clientService.sendNotification("reset",());
     }
 }

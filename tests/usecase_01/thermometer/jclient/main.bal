@@ -3,28 +3,45 @@ import ballerina/io;
 import asus/json_rpc.types;
 
 public function main() {
-    'client:UDPClient udpClient = new("localhost",8080);
-    udpClient.register();
+    types:UDPConfig wc ={
+        host: "localhost",
+        port: 8080
+    };
+   'client:Client cl = new(wc);
+    cl.register();
 
-    udpClient.sendRequest("convirt", {"z": 80}, function (types:Response|types:Error? u) returns () {
+    Thermometer thermo = cl.getService(new Thermometer());
+
+    thermo.clientService.sendRequest("convirt", {"z": 80}, function (types:Response|types:Error? u) returns () {
         io:println("1 : ", u);
     });
 
-    udpClient.sendRequest("print", {"z": 80}, function (types:Response|types:Error? u) returns () {
+    thermo.clientService.sendRequest("print", {"z": 80}, function (types:Response|types:Error? u) returns () {
         io:println("2 : ", u);
     });
 
-    udpClient.sendRequest("convirt", {"zs": 80}, function (types:Response|types:Error? u) returns () {
+    thermo.clientService.sendRequest("convirt", {"zs": 80}, function (types:Response|types:Error? u) returns () {
         io:println("3 : ", u);
     });
 
-    udpClient.sendRequest("convirt", {"s": 180}, function (types:Response|types:Error? u) returns () {
+    thermo.clientService.sendRequest("convirt", {"s": 180}, function (types:Response|types:Error? u) returns () {
         io:println("4 : ", u);
     });
 
-    udpClient.sendRequest("convirt", {"z": 180}, function (types:Response|types:Error? u) returns () {
+    thermo.clientService.sendRequest("convirt", {"z": 180}, function (types:Response|types:Error? u) returns () {
         io:println("5 : ", u);
     });
 
-    udpClient.closeClient();
+    cl.close(function (){
+        io:println("Client has been disconnected ....");
+    });
+}
+
+public class Thermometer {
+    *'client:JRPCService;
+
+    function init() {
+        self.clientService = new();
+    }
+
 }

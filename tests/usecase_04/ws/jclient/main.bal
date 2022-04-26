@@ -20,7 +20,9 @@ public function main() {
        io:println(obj); 
     });
 
-    cl.close(); 
+    cl.close(function (){
+        io:println("close the client...");
+    }); 
 }
 
 class service_01 {

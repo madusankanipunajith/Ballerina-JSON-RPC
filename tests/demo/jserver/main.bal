@@ -7,7 +7,7 @@ type R record {
     int x;
     int y;
 };
-
+ 
 service / on new websocket:Listener(3000) {
     resource function get .() returns websocket:Service|websocket:Error {
         return new WsService();
@@ -17,7 +17,7 @@ service / on new websocket:Listener(3000) {
 service class WsService {
     *websocket:Service;
     remote function onBinaryMessage(websocket:Caller caller, byte[] data) returns websocket:Error? {
-        svr.sendResponse(caller,data);
+       svr.sendResponse(caller,data);
     }
 
     remote function onClose(websocket:Caller caller, int statusCode, string reason) {
@@ -47,34 +47,39 @@ public class CM {
         return r.x + r.y;
     }
 
-    public function sub(types:InputParams params) returns int|error {
-        R r = check params.cloneWithType();
-        return r.x - r.y;
-    }
-
-    public function mult(types:InputParams params) returns int|error {
-        R r = check params.cloneWithType();
-        return r.x * r.y;
-    }
-
-    public function div(types:InputParams params) returns string|float|error {
-        R r = check params.cloneWithType();
-        if r.y == 0 {
-            return "error: can't divide a number by zero";
-        }
-
-        return <float>(r.x / r.y);
-    }
-
     public isolated function getMethods() returns types:Methods {
         return {
-            "add": self.add,
-            "sub": self.sub,
-            "mult": self.mult,
-            "div": self.div
+            "add": self.add
         };
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // import ballerina/websocket;
 // import ballerina/io;
