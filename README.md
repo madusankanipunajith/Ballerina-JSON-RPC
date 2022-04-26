@@ -89,33 +89,37 @@ We can create 3 types of clients by using this library. They are TCP client, UDP
  **Library level implementation** 
  1) Initialize a client and register it. (WebSocket protocol has been used here)
  ```Ballerina
- 'client:WSClient cl = new("localhost",3000);
+ types:WSConfig wc = {
+    host: "localhost",
+    port: 3000
+ };
+ 'client:Client cl = new(wc);
     cl.register();
  ```
  2) Establish/define the client’s methods (send messages to the server)
  ```Ballerina
- wsClient.sendRequest("add", {"x":100, "y": 80}, function (types:Response|types:Error? u) returns () {
+ cl.clientService.sendRequest("add", {"x":100, "y": 80}, function (types:Response|types:Error? u) returns () {
          io:println("1 : ", u);
 });
 
-wsClient.sendRequest("sub", {"x":100, "y": 80}, function (types:Response|types:Error? u) returns () {
+cl.clientService.sendRequest("sub", {"x":100, "y": 80}, function (types:Response|types:Error? u) returns () {
         io:println("2 : ", u);
 });
     
-wsClient.sendRequest("sub", 100, function (types:Response|types:Error? u) returns () {
+cl.clientService.sendRequest("sub", 100, function (types:Response|types:Error? u) returns () {
        io:println("3 : ", u);
 });
 
 
-wsClient.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}}],function (types:BatchJRPCOutput|types:Error? u) returns () {
+cl.clientService.sendRequestBatch([{method: "add",params: {"x":100, "y": 80}}],function (types:BatchJRPCOutput|types:Error? u) returns () {
    io:println("4 : ", u);
 });
     
-wsClient.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function (types:BatchJRPCOutput|types:Error? u) returns () {
+cl.clientService.sendRequestBatch([{method: "sub",params: {"x":100, "y": 80},notification: true},{method: "sub", params: {"x":100, "y": 80}}],function (types:BatchJRPCOutput|types:Error? u) returns () {
    io:println("5 : ", u);
 });
     
-wsClient.sendRequestBatch([{method: "sub",params: [100,80],notification: true},{method: "add", params: {"x":100, "y": 80}}],function (types:BatchJRPCOutput|types:Error? u) returns () {
+cl.clientService.sendRequestBatch([{method: "sub",params: [100,80],notification: true},{method: "add", params: {"x":100, "y": 80}}],function (types:BatchJRPCOutput|types:Error? u) returns () {
   io:println("7 : ", u);
 });
 ```
@@ -129,73 +133,16 @@ wsClient.sendRequestBatch([{method: "sub",params: [100,80],notification: true},{
  
  3) Close the client eventually.
  ```Ballerina
- wsClient.closeClient();
+ cl.close(function(){
+   io:println("client has been disconnected successfully...");
+ });
  ```
- 
- **Secondary level implementation (wrapper)** 
- 1) Create a class separately and initialize a WebSocket client in it. 
- 2) Define reusable functions inside the class 
- 3) Define member methods for closing the client and registering the client. 
-```Ballerina
- public function main() {
-    CalculatorClient calc = new("localhost",3000);
-    calc.starts();
-
-    calc.add({"x":100, "y": 80}, function (types:Response|types:Error? u) returns () {
-        io:println(u);
-    });
-
-    calc.add({"x":1000, "y": 80}, function (types:Response|types:Error? u) returns () {
-        io:println(u);
-    });
-
-    calc.add({"x":1400, "y": 80}, function (types:Response|types:Error? u) returns () {
-        io:println(u);
-    });
-
-    calc.sub({"x":100,"y":90});
-
-    calc.sub(100);
-
-    calc.close();
-}
-
-class CalculatorClient {
-    private 'client:WSClient wsClient;
-
-    public function init(string host, int port) {
-        self.wsClient = new(host, port);
-    }
-
-    public function starts() {
-        self.wsClient.register();
-    }
-
-    public function close() {
-        self.wsClient.closeClient();
-    }
-
-    // reusable method
-    public function add(anydata params, function (types:Response|types:Error? out) response) {
-        self.wsClient.sendRequest("add",params,function (types:Response|types:Error? u) returns () {
-           response(u); 
-        });
-    }
-
-    // reusable method
-    public function sub(anydata params) {
-        self.wsClient.sendRequest("sub",params,function (types:Response|types:Error? u) returns () {
-           io:println(u); 
-        });
-    }
-}
-``` 
  
 **`Note:`** If the user has used a protocol like UDP or WS to implement the client, all the functions are working asynchronously (methods are not waiting for the execution). This is pretty much similar to the execution inside a rest API in the node js framework.
 
 **`Note:`** If the user has used a protocol like TCP to implement the client, all the functions are working synchronously (methods are waiting until the previous function is completed).    
 
-> This is just a single way to implement a client using the library. This method is useful when the user wants to define a single service class (calculator). Now assume that if the user wants to add more service classes (calculator and thermometer) instead of a single service class, how does the user manage that?. For managing that scenario, this library will give nice wrappers to the users to enhance the usability and readability of the code.
+> Now we know wether how to create a client and close the client. But we don't know how to create a JRPC services and manage it inside the client side. Now assume that if the user wants to define a JRPC service class called "Calculator" and how does the user define and manage that?. For managing that scenario, this library will give nice wrappers to the users to enhance the usability and readability of the code. Furthermore, if user wants to manage multiple JRPC services in addition to the single JRPC service ("Calculator" and "Thermomter"), it is also possible to manage by using this library and framework. Below examples have shown you, how to create a JRPC services and manage those.
 
 **Process :**
  1) Create a service class and extend it from JRPCService class (given by the library)
@@ -224,7 +171,9 @@ class CalculatorClient {
     calculator.add(2090);
     calculator.sub({"x":460,"y":60});
 
-    cl.close();
+    cl.close(function(){
+      io:println("Client has been disconnected successfully...");
+    });
 }
 
 class Calculator {
@@ -265,7 +214,9 @@ Example 02: Create multiple services (calculator and thermometer)
     calculator.sub(200);
     thermometer.convert({"z":100});
 
-    cl.close(); 
+    cl.close(function(){
+     io:println("Client has been disconnected successfully...");
+    }); 
 }
 
 class Calculator {
@@ -592,64 +543,74 @@ class TherMethods {
 4) client side implementation
 ```Ballerina
  public function main() {
-    CTClient cl = new("localhost",3000);
-    cl.starts();
+    types:WSConfig wc = {
+      host: "localhost",
+      port: 3000
+    };
+    'client:Client cl = new(wc);
+    cl.register();
+ 
+   Calculator calc = <Calculator> cl.getService(new Calculator());
+   Thermometr termo = <Thermometer> cl.getService(new Thermomter());
 
-    cl.add({"x":100, "y": 80}, function (types:Response|types:Error? u) returns () {
+    calc.add({"x":100, "y": 80}, function (types:Response|types:Error? u) returns () {
         io:println(u);
     });
 
-    cl.add({"x":1000, "y": 80}, function (types:Response|types:Error? u) returns () {
+    calc.add({"x":1000, "y": 80}, function (types:Response|types:Error? u) returns () {
         io:println(u);
     });
 
-    cl.add({"x":1400, "y": 80}, function (types:Response|types:Error? u) returns () {
+    calc.add({"x":1400, "y": 80}, function (types:Response|types:Error? u) returns () {
         io:println(u);
     });
 
-    cl.sub({"x":100,"y":90});
+    calc.sub({"x":100,"y":90});
 
-    cl.convert({"z": 100});
+    termo.convert({"z": 100});
 
-    cl.close();
+    cl.close(function(){
+      io:println("client has been disconnected...");
+    });
 }
 
-class CTClient {
-    private 'client:WSClient wsClient;
-
-    public function init(string host, int port) {
-        self.wsClient = new(host, port);
-    }
-
-    public function starts() {
-        self.wsClient.register();
-    }
-
-    public function close() {
-        self.wsClient.closeClient();
+class Calculator {
+    *'client:JRPCService;
+ 
+    public function init(){
+      self.clientService = new();
     }
 
     // reusable method
     public function add(anydata params, function (types:Response|types:Error? out) response) {
-        self.wsClient.sendRequest("calculator/add",params,function (types:Response|types:Error? u) returns () {
+        self.clientService.sendRequest("calculator/add",params,function (types:Response|types:Error? u) returns () {
            response(u); 
         });
     }
 
     // reusable method
     public function sub(anydata params) {
-        self.wsClient.sendRequest("calculator/sub",params,function (types:Response|types:Error? u) returns () {
+        self.clientService.sendRequest("calculator/sub",params,function (types:Response|types:Error? u) returns () {
            io:println(u); 
         });
     }
 
-    // reusable method
+}
+ 
+class Thermometer {
+   *'client:JRPCService;
+ 
+   public function init(){
+     self.clientService = new();
+   }
+ 
+   // reusable method
     public function convert(anydata params) {
-        self.wsClient.sendRequest("thermometer/convirt",params,function (types:Response|types:Error? u) returns () {
+        self.clientService.sendRequest("thermometer/convirt",params,function (types:Response|types:Error? u) returns () {
            io:println(u); 
         });
     }
-}
+ } 
 ``` 
 
 **`Note:`** Sometimes, you might see below type of warning messages on the terminal. It is given by the Ballerina just to alert you. Furthermore, it is not an error but just a warning. Make sure that you have avoided concurrent access to the same mutable instance or object. If you are sure that there is not a concurrency issue in your application, please ignore that warning message.
