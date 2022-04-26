@@ -12,19 +12,15 @@ public function main() {
     cl.register();
     Employ emp = <Employ>cl.getService(new Employ());
 
+    emp.getLastName(["Jones","Anne", "Rocky", "Nipuna"]);
     emp.getLeader();
-
     emp.getNames();
 
-    emp.getTotalSalary(function (int i) returns () {
-       io:println("Total salary is ", i); 
-    });
-
-    emp.getSalary("Jones", "Welsh");
-
     cl.close(function (){
-        io:println("Closed the client...");
+        io:println("Client has been closed successfully");
     });
+
+    io:println("Async client");
 }
 
 class Employ{
@@ -35,6 +31,7 @@ class Employ{
     }
 
     public function getLeader() {
+        io:println("B");
         self.clientService.sendRequest("lead",(), function (types:Response|types:Error? response){
             if response is types:Response{
                 io:println("Leader is ", response.result);
@@ -52,7 +49,24 @@ class Employ{
         });
     }
 
+    public function getLastName(string[] fnames) {
+        io:println("A");
+        types:BatchInput[] input = [];
+        foreach var item in fnames {
+            input.push({method: "last", params: {first: item, last: ""}});
+        }
+
+        self.clientService.sendRequestBatch(input, function (types:BatchJRPCOutput|types:Error? response){
+            if response is types:BatchJRPCOutput{
+                io:println("Last names are ", response);
+            }else {
+                io:println("Error occured...");
+            }
+        });
+    }
+
     public function getNames() {
+        io:println("C");
         self.clientService.sendRequest("list_fnames",(), function (types:Response|types:Error? response){
             if response is types:Response{
                 io:println("Names ", response.result);

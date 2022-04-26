@@ -27,7 +27,9 @@ public function main() {
 
     emp.getSalary("Jones", "Welsh");
 
-    cl.close();
+    cl.close(function (){
+        io:println("Client has been closed successfully");
+    });
 }
 
 class Employ{

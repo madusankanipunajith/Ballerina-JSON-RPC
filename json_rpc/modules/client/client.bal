@@ -54,7 +54,7 @@ public class ClientService {
 }
 
 # Create a client using WS protocol (working asynchronously)
-public class WSClient {
+class WSClient {
     *ClientService;
 
     private websocket:Client wsClient;
@@ -105,8 +105,10 @@ public class WSClient {
         }
     }
 
-    # Emplimentation of the closeClient method
-    public function closeClient() {
+    
+    # Description
+    # + return - Return a boolean value
+    public function closeClient() returns boolean{
         log:printInfo("Total : " + self.store.requestStore.length().toJsonString());
         while true {
             util:nap();
@@ -114,13 +116,11 @@ public class WSClient {
                 if self.store.requestStore.length() === 0 {
                     websocket:Error? close = self.wsClient->close(1000, REASON, 5);
                     if !(close is websocket:Error) {
-                        log:printInfo(DISCONNECT);
-                        break;
+                        return true;
                     } else {
                         log:printInfo(DISCONNECT_ERROR);
+                        return false;
                     }
-
-                    break;
                 }
             }
         }
@@ -201,7 +201,7 @@ public class WSClient {
 }
 
 # Create a client using TCP protocol (working synchronously)
-public class TCPClient {
+class TCPClient {
     *ClientService;
 
     private tcp:Client tcpClient;
@@ -217,12 +217,13 @@ public class TCPClient {
         self.store = new ();
     }
 
-    public function closeClient() {
+    public function closeClient() returns boolean{
         tcp:Error? close = self.tcpClient->close();
         if !(close is tcp:Error) {
-            log:printInfo(DISCONNECT);
+            return true;
         } else {
             log:printInfo(DISCONNECT_ERROR);
+            return false;
         }
     }
 
@@ -274,7 +275,7 @@ public class TCPClient {
 }
 
 # Create a client using UDP protocol (working asynchronously)
-public class UDPClient {
+class UDPClient {
     *ClientService;
 
     private udp:ConnectClient udpClient;
@@ -317,7 +318,7 @@ public class UDPClient {
         }
     }
 
-    public function closeClient() {
+    public function closeClient() returns boolean{
         log:printInfo("Total : " + self.store.requestStore.length().toJsonString());
         while true {
             util:nap();
@@ -325,13 +326,11 @@ public class UDPClient {
                 if self.store.requestStore.length() === 0 {
                     udp:Error? close = self.udpClient->close();
                     if !(close is udp:Error) {
-                        log:printInfo(DISCONNECT);
-                        break;
+                        return true;
                     } else {
                         log:printInfo(DISCONNECT_ERROR);
+                        return false;
                     }
-
-                    break;
                 }
             }
         }
