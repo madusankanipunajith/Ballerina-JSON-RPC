@@ -1,6 +1,6 @@
-Prints "Hello World!" with a main function.
-[//]: # (above is the module summary)
-
 # Module Overview
-Provides an overview about the module when generating the API documentations.
-For example, refer to https://lib.ballerina.io/ballerina/io/0.6.0-beta.2
+
+- This is a public module.
+- It consists of all the data types in the library  
+- Since this module, reusability is enhanced. 
+- More information is in the documentation.
