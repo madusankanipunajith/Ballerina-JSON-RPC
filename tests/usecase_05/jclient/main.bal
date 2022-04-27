@@ -1,5 +1,5 @@
-import json_rpc.'client;
-import json_rpc.types;
+import madusanka/json_rpc.'client;
+import madusanka/json_rpc.types;
 import ballerina/io;
 
 public function main() {

@@ -1,8 +1,8 @@
 import ballerina/io;
 import ballerina/log;
 import ballerina/tcp;
-import json_rpc.server;
-import json_rpc.types;
+import madusanka/json_rpc.server;
+import madusanka/json_rpc.types;
 
 type P record {
     int x;

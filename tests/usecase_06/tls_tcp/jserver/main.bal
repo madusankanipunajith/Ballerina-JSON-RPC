@@ -1,7 +1,7 @@
 import ballerina/tcp;
 import ballerina/io;
-import json_rpc.server;
-import json_rpc.types;
+import madusanka/json_rpc.server;
+import madusanka/json_rpc.types;
 import ballerina/log;
 
 type Employee record {

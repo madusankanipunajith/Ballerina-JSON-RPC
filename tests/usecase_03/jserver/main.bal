@@ -1,5 +1,5 @@
-import asus/json_rpc.server;
-import asus/json_rpc.types;
+import madusanka/json_rpc.server;
+import madusanka/json_rpc.types;
 import ballerina/websocket;
 import ballerina/io;
 

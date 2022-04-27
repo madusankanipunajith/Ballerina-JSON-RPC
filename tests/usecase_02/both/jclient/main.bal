@@ -1,6 +1,6 @@
-import asus/json_rpc.'client;
+import madusanka/json_rpc.'client;
 import ballerina/io;
-import asus/json_rpc.types;
+import madusanka/json_rpc.types;
 
 public function main() {
     types:WSConfig wc ={
