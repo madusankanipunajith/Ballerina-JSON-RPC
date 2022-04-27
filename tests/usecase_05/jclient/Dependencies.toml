@@ -11,34 +11,12 @@ org = "asus"
 name = "jclient"
 version = "0.1.0"
 dependencies = [
-	{org = "asus", name = "json_rpc"},
 	{org = "ballerina", name = "io"},
-	{org = "ballerinai", name = "observe"}
+	{org = "ballerinai", name = "observe"},
+	{org = "madusanka", name = "json_rpc"}
 ]
 modules = [
 	{org = "asus", packageName = "jclient", moduleName = "jclient"}
-]
-
-[[package]]
-org = "asus"
-name = "json_rpc"
-version = "0.1.0"
-dependencies = [
-	{org = "ballerina", name = "io"},
-	{org = "ballerina", name = "lang.runtime"},
-	{org = "ballerina", name = "lang.value"},
-	{org = "ballerina", name = "log"},
-	{org = "ballerina", name = "tcp"},
-	{org = "ballerina", name = "time"},
-	{org = "ballerina", name = "udp"},
-	{org = "ballerina", name = "websocket"}
-]
-modules = [
-	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc"},
-	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.client"},
-	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.server"},
-	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.types"},
-	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.util"}
 ]
 
 [[package]]
@@ -336,6 +314,28 @@ dependencies = [
 ]
 modules = [
 	{org = "ballerinai", packageName = "observe", moduleName = "observe"}
+]
+
+[[package]]
+org = "madusanka"
+name = "json_rpc"
+version = "0.1.0"
+dependencies = [
+	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "lang.runtime"},
+	{org = "ballerina", name = "lang.value"},
+	{org = "ballerina", name = "log"},
+	{org = "ballerina", name = "tcp"},
+	{org = "ballerina", name = "time"},
+	{org = "ballerina", name = "udp"},
+	{org = "ballerina", name = "websocket"}
+]
+modules = [
+	{org = "madusanka", packageName = "json_rpc", moduleName = "json_rpc"},
+	{org = "madusanka", packageName = "json_rpc", moduleName = "json_rpc.client"},
+	{org = "madusanka", packageName = "json_rpc", moduleName = "json_rpc.server"},
+	{org = "madusanka", packageName = "json_rpc", moduleName = "json_rpc.types"},
+	{org = "madusanka", packageName = "json_rpc", moduleName = "json_rpc.util"}
 ]
 
 

@@ -5,7 +5,7 @@ distribution = "2201.0.0"
 observabilityIncluded = true
 
 [[dependency]]
-org="asus"
+org="madusanka"
 name="json_rpc"
 repository="local"
 version="0.1.0"

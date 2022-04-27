@@ -7,29 +7,6 @@
 dependencies-toml-version = "2"
 
 [[package]]
-org = "asus"
-name = "json_rpc"
-version = "0.1.0"
-dependencies = [
-	{org = "ballerina", name = "io"},
-	{org = "ballerina", name = "lang.runtime"},
-	{org = "ballerina", name = "lang.value"},
-	{org = "ballerina", name = "log"},
-	{org = "ballerina", name = "tcp"},
-	{org = "ballerina", name = "test"},
-	{org = "ballerina", name = "time"},
-	{org = "ballerina", name = "udp"},
-	{org = "ballerina", name = "websocket"}
-]
-modules = [
-	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc"},
-	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.client"},
-	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.server"},
-	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.types"},
-	{org = "asus", packageName = "json_rpc", moduleName = "json_rpc.util"}
-]
-
-[[package]]
 org = "ballerina"
 name = "auth"
 version = "2.2.0"
@@ -345,6 +322,29 @@ dependencies = [
 ]
 modules = [
 	{org = "ballerina", packageName = "websocket", moduleName = "websocket"}
+]
+
+[[package]]
+org = "madusanka"
+name = "json_rpc"
+version = "0.1.0"
+dependencies = [
+	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "lang.runtime"},
+	{org = "ballerina", name = "lang.value"},
+	{org = "ballerina", name = "log"},
+	{org = "ballerina", name = "tcp"},
+	{org = "ballerina", name = "test"},
+	{org = "ballerina", name = "time"},
+	{org = "ballerina", name = "udp"},
+	{org = "ballerina", name = "websocket"}
+]
+modules = [
+	{org = "madusanka", packageName = "json_rpc", moduleName = "json_rpc"},
+	{org = "madusanka", packageName = "json_rpc", moduleName = "json_rpc.client"},
+	{org = "madusanka", packageName = "json_rpc", moduleName = "json_rpc.server"},
+	{org = "madusanka", packageName = "json_rpc", moduleName = "json_rpc.types"},
+	{org = "madusanka", packageName = "json_rpc", moduleName = "json_rpc.util"}
 ]
 
 

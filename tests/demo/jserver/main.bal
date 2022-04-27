@@ -1,7 +1,7 @@
 import ballerina/websocket;
 import ballerina/io;
-import asus/json_rpc.server;
-import asus/json_rpc.types;
+import madusanka/json_rpc.server;
+import madusanka/json_rpc.types;
 
 type R record {
     int x;
