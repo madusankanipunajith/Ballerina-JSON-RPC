@@ -62,7 +62,9 @@ register: This method is available only when a user creates a client using WS or
 You will get more understanding about these classes given by the library when you are moving to the demo part. 
   
 
-### Usecases
+### Documentation and Usecases
 
 Please refer the Source repository : https://github.com/madusankanipunajith/Ballerina-JSON-RPC
+
+
 

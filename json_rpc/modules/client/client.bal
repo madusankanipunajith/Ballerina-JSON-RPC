@@ -109,7 +109,7 @@ class WSClient {
     # Description
     # + return - Return a boolean value
     public function closeClient() returns boolean{
-        log:printInfo("Total : " + self.store.requestStore.length().toJsonString());
+        
         while true {
             util:nap();
             lock {
@@ -319,7 +319,7 @@ class UDPClient {
     }
 
     public function closeClient() returns boolean{
-        log:printInfo("Total : " + self.store.requestStore.length().toJsonString());
+       
         while true {
             util:nap();
             lock {
